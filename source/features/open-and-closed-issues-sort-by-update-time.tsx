@@ -13,7 +13,7 @@ function init(): void {
 		// + skip pagination links
 		// + skip pr/issue filter dropdowns (some are lazyloaded)
 		if (/(issues|pulls)\/?$/.test(link.pathname) && !link.closest('.pagination, .table-list-filters')) {
-			new SearchQuery(link).add('is:closed sort:updated-desc');
+			new SearchQuery(link).set('sort:updated-desc');
 		}
 	}
 }
