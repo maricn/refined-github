@@ -6,14 +6,15 @@ import SearchQuery from '../libs/search-query';
 
 function init(): void {
 	// Get issues links that don't already have a specific sorting applied
+	// ignore PRs: [href*="/pulls"]:not([href*="sort%3A"]):not(.issues-reset-query),
 	for (const link of select.all<HTMLAnchorElement>(`
-		[href*="/issues"]:not([href*="sort%3A"]):not(.issues-reset-query),
-		[href*="/pulls" ]:not([href*="sort%3A"]):not(.issues-reset-query)
+		[href*="/issues"]:not([href*="sort%3A"]):not(.issues-reset-query)
 	`)) {
 		// Pick only links to lists, not single issues
 		// + skip pagination links
 		// + skip pr/issue filter dropdowns (some are lazyloaded)
-		if (/(issues|pulls)\/?$/.test(link.pathname) && !link.closest('.pagination, .table-list-filters')) {
+                // + skip PRs altogether (/(issues|pulls)\/?$/.test(link.pathname) 
+		if (/issues\/?$/.test(link.pathname) && !link.closest('.pagination, .table-list-filters')) {
 			new SearchQuery(link).set('sort:updated-desc');
 		}
 	}
@@ -25,7 +26,7 @@ async function cleanBar(): Promise<void> {
 
 features.add({
 	id: __filebasename,
-	description: 'Shows both open and closed issues and PRs and sorts them by `Recently updated`.',
+	description: 'Shows both open and closed issues and sorts them by `Recently updated`. Does not apply to PRs.',
 	screenshot: false
 }, {
 	init
