@@ -2,10 +2,11 @@ import select from 'select-dom';
 import checkIcon from 'octicon/check.svg';
 import elementReady from 'element-ready';
 import features from '../libs/features';
+import * as pageDetect from '../libs/page-detect';
 import SearchQuery from '../libs/search-query';
 
 function addMergeLink(): void {
-	if (!features.isPRList()) {
+	if (!pageDetect.isPRList()) {
 		return;
 	}
 
@@ -59,12 +60,12 @@ async function init(): Promise<void | false> {
 }
 
 features.add({
-	id: __featureName__,
+	id: __filebasename,
 	description: 'Lets you toggle between is:open/is:closed/is:merged filters in searches.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/73605061-2125ed00-45cc-11ea-8cbd-41a53ae00cd3.gif'
 }, {
 	include: [
-		features.isDiscussionList
+		pageDetect.isDiscussionList
 	],
 	waitForDomReady: false,
 	init

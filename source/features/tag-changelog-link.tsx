@@ -3,6 +3,7 @@ import select from 'select-dom';
 import diffIcon from 'octicon/diff.svg';
 import tinyVersionCompare from 'tiny-version-compare';
 import features from '../libs/features';
+import * as pageDetect from '../libs/page-detect';
 import fetchDom from '../libs/fetch-dom';
 import {isSingleTagPage} from '../libs/page-detect';
 import {getRepoPath, getRepoURL, parseTag} from '../libs/utils';
@@ -116,12 +117,12 @@ const getPreviousTag = (current: number, allTags: TagDetails[]): string | undefi
 };
 
 features.add({
-	id: __featureName__,
+	id: __filebasename,
 	description: 'Adds a link to an automatic changelog for each tag/release.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/57081611-ad4a7180-6d27-11e9-9cb6-c54ec1ac18bb.png'
 }, {
 	include: [
-		features.isReleasesOrTags
+		pageDetect.isReleasesOrTags
 	],
 	init
 });

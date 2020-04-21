@@ -5,6 +5,7 @@ import select from 'select-dom';
 import repoIcon from 'octicon/repo.svg';
 import elementReady from 'element-ready';
 import features from '../libs/features';
+import * as pageDetect from '../libs/page-detect';
 import fetchDom from '../libs/fetch-dom';
 import {getRepoURL, looseParseInt} from '../libs/utils';
 
@@ -38,7 +39,7 @@ const getFirstCommitDate = cache.function(async (): Promise<string | undefined> 
 
 	return relativeTime!.attributes.datetime.value;
 }, {
-	cacheKey: () => __featureName__ + ':' + getRepoURL()
+	cacheKey: () => __filebasename + ':' + getRepoURL()
 });
 
 async function init(): Promise<void> {
@@ -72,12 +73,12 @@ async function init(): Promise<void> {
 }
 
 features.add({
-	id: __featureName__,
+	id: __filebasename,
 	description: 'Adds the age of the repository to the stats/numbers bar',
 	screenshot: 'https://user-images.githubusercontent.com/3848317/69256318-95e6af00-0bb9-11ea-84c8-c6996d39da80.png'
 }, {
 	include: [
-		features.isRepoRoot
+		pageDetect.isRepoRoot
 	],
 	waitForDomReady: false,
 	init

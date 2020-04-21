@@ -5,6 +5,7 @@ import delegate from 'delegate-it';
 import codeIcon from 'octicon/code.svg';
 import fileIcon from 'octicon/file.svg';
 import features from '../libs/features';
+import * as pageDetect from '../libs/page-detect';
 import fetchDom from '../libs/fetch-dom';
 
 const buttonBodyMap = new WeakMap<Element, Element | Promise<Element>>();
@@ -104,12 +105,12 @@ async function init(): Promise<false | void> {
 }
 
 features.add({
-	id: __featureName__,
+	id: __filebasename,
 	description: 'Adds a button to view the source of Markdown files.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/54814836-7bc39c80-4ccb-11e9-8996-9ecf4f6036cb.png'
 }, {
 	include: [
-		features.isSingleFile
+		pageDetect.isSingleFile
 	],
 	init
 });

@@ -3,6 +3,7 @@ import select from 'select-dom';
 import issueIcon from 'octicon/issue-opened.svg';
 import pullRequestIcon from 'octicon/git-pull-request.svg';
 import features from '../libs/features';
+import * as pageDetect from '../libs/page-detect';
 import observeElement from '../libs/simplified-element-observer';
 
 function init(): void {
@@ -38,18 +39,18 @@ function init(): void {
 }
 
 features.add({
-	id: __featureName__,
+	id: __filebasename,
 	description: 'Adds a link to the issues and pulls on the user profile repository tab and global search.',
 	screenshot: 'https://user-images.githubusercontent.com/16872793/78712349-82c54900-78e6-11ea-8328-3c2d39a78862.png'
 }, {
 	include: [
-		features.isUserProfileRepoTab,
-		features.isGlobalSearchResults
+		pageDetect.isUserProfileRepoTab,
+		pageDetect.isGlobalSearchResults
 	],
 	init
 }, {
 	include: [
-		features.isUserProfileRepoTab
+		pageDetect.isUserProfileRepoTab
 	],
 	init: () => {
 		observeElement('#user-repositories-list', init);

@@ -5,6 +5,7 @@ import delegate from 'delegate-it';
 import * as textFieldEdit from 'text-field-edit';
 import * as api from '../libs/api';
 import features from '../libs/features';
+import * as pageDetect from '../libs/page-detect';
 import loadingIcon from '../libs/icon-loading';
 import {getRepoURL, getRepoGQL} from '../libs/utils';
 
@@ -91,12 +92,12 @@ function init(): void | false {
 }
 
 features.add({
-	id: __featureName__,
+	id: __filebasename,
 	description: 'Clone a branch from the branches list.',
 	screenshot: 'https://user-images.githubusercontent.com/16872793/76802029-2a020500-67ad-11ea-95dc-bee1b1352976.png'
 }, {
 	include: [
-		features.isBranches
+		pageDetect.isBranches
 	],
 	init
 });

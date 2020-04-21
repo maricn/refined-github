@@ -5,6 +5,7 @@ import onetime from 'onetime';
 import infoIcon from 'octicon/info.svg';
 import delegate from 'delegate-it';
 import features from '../libs/features';
+import * as pageDetect from '../libs/page-detect';
 import * as prCiStatus from '../libs/pr-ci-status';
 import onPrMergePanelOpen from '../libs/on-pr-merge-panel-open';
 
@@ -108,12 +109,12 @@ function init(): false | void {
 }
 
 features.add({
-	id: __featureName__,
+	id: __filebasename,
 	description: 'Adds the option to wait for checks when merging a PR.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/35192861-3f4a1bf6-fecc-11e7-8b9f-35ee019c6cdf.gif'
 }, {
 	include: [
-		features.isPRConversation
+		pageDetect.isPRConversation
 	],
 	init
 });

@@ -7,6 +7,7 @@ import branchIcon from 'octicon/git-branch.svg';
 import historyIcon from 'octicon/history.svg';
 import packageIcon from 'octicon/package.svg';
 import features from '../libs/features';
+import * as pageDetect from '../libs/page-detect';
 import {getRepoURL, getReference} from '../libs/utils';
 import {isEnterprise} from '../libs/page-detect';
 import {appendBefore} from '../libs/dom-utils';
@@ -77,12 +78,12 @@ async function init(): Promise<void> {
 }
 
 features.add({
-	id: __featureName__,
+	id: __filebasename,
 	description: 'Adds links to `Commits`, `Branches`, `Dependencies`, and `Compare` in a new `More` dropdown.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/55089736-d94f5300-50e8-11e9-9095-329ac74c1e9f.png'
 }, {
 	include: [
-		features.isRepo
+		pageDetect.isRepo
 	],
 	waitForDomReady: false,
 	init
