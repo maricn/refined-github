@@ -1,12 +1,12 @@
 import './release-download-count.css';
 import React from 'dom-chef';
 import select from 'select-dom';
+import DownloadIcon from 'octicon/download.svg';
 import * as pageDetect from 'github-url-detection';
-import CloudDownloadIcon from 'octicon/cloud-download.svg';
 
-import * as api from '../libs/api';
-import features from '../libs/features';
-import {getRepoGQL} from '../libs/utils';
+import features from '.';
+import * as api from '../github-helpers/api';
+import {getRepoGQL} from '../github-helpers';
 
 interface Asset {
 	name: string;
@@ -79,7 +79,7 @@ async function init(): Promise<void | false> {
 						.querySelector('small')!
 						.before(
 							<small className={classes} title="Downloads">
-								{prettyNumber(downloadCount)} <CloudDownloadIcon/>
+								{prettyNumber(downloadCount)} <DownloadIcon/>
 							</small>
 						);
 				}
@@ -88,7 +88,7 @@ async function init(): Promise<void | false> {
 	}
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Adds a download count next to release assets.',
 	screenshot: 'https://user-images.githubusercontent.com/14323370/58944460-e1aeb480-874f-11e9-8052-2d4dc794ecab.png'

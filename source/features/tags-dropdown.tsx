@@ -1,17 +1,28 @@
 import './tags-dropdown.css';
 import React from 'dom-chef';
 import select from 'select-dom';
-import OctofaceIcon from 'octicon/octoface.svg';
+import OctofaceIcon from '@primer/octicons/build/svg/octoface.svg';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
-import {getRepoURL} from '../libs/utils';
+import features from '.';
+import {getRepoURL} from '../github-helpers';
 
-function init(): false | void {
-	if (select.exists('.blankslate')) {
-		return false;
+// We're reusing the Branch/Tag selector from the repo's Code tab, so we need to update a few things
+function changeTabToTags(): void {
+	// Select "Tags" tab
+	select('.rgh-tags-dropdown .SelectMenu-tab:last-child')!.click();
+}
+
+function updateLinksToTag(): void {
+	// Change links, which point to the content of each tag, to open the tag page instead
+	for (const anchorElement of select.all<HTMLAnchorElement>('.rgh-tags-dropdown #tags-menu .SelectMenu-item[href*="/tree/"]')) {
+		const pathnameParts = anchorElement.pathname.split('/');
+		pathnameParts[3] = 'releases/tag'; // Replace `tree`
+		anchorElement.pathname = pathnameParts.join('/');
 	}
+}
 
+function init(): void {
 	select('.subnav')!.append(
 		<div className="rgh-tags-dropdown float-right d-flex flex-shrink-0 flex-items-center">
 			<details className="details-reset details-overlay select-menu branch-select-menu position-relative">
@@ -39,28 +50,16 @@ function init(): false | void {
 	select('.rgh-tags-dropdown')!.addEventListener('remote-input-success', updateLinksToTag);
 }
 
-// We're reusing the Branch/Tag selector from the repo's Code tab, so we need to update a few things
-function changeTabToTags(): void {
-	// Select "Tags" tab
-	select('.rgh-tags-dropdown .SelectMenu-tab:last-child')!.click();
-}
-
-function updateLinksToTag(): void {
-	// Change links, which point to the content of each tag, to open the tag page instead
-	for (const anchorElement of select.all<HTMLAnchorElement>('.rgh-tags-dropdown .SelectMenu-list:last-child [href*="/tree/"]')) {
-		const pathnameParts = anchorElement.pathname.split('/');
-		pathnameParts[3] = 'releases/tag'; // Replace `tree`
-		anchorElement.pathname = pathnameParts.join('/');
-	}
-}
-
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Adds a tags dropdown/search on tag/release pages.',
 	screenshot: 'https://user-images.githubusercontent.com/22439276/56373231-27ee9980-621e-11e9-9b21-601919d3dddf.png'
 }, {
 	include: [
 		pageDetect.isReleasesOrTags
+	],
+	exclude: [
+		pageDetect.isEmptyRepoRoot
 	],
 	init
 });

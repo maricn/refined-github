@@ -3,8 +3,8 @@ import select from 'select-dom';
 import delegate from 'delegate-it';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
-import onPrMergePanelOpen from '../libs/on-pr-merge-panel-open';
+import features from '.';
+import onPrMergePanelOpen from '../github-events/on-pr-merge-panel-open';
 
 const fieldSelector = [
 	'#commit-summary-input', // Commit title on edit file page
@@ -20,7 +20,7 @@ function init(): void {
 	delegate(document, fieldSelector, 'input', validateInput);
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Suggest limiting commit titles to 72 characters.',
 	screenshot: 'https://user-images.githubusercontent.com/37769974/60379478-106b3280-9a51-11e9-88b9-0e3607f214cd.gif'

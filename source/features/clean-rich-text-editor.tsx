@@ -2,7 +2,7 @@ import './clean-rich-text-editor.css';
 import select from 'select-dom';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
+import features from '.';
 
 function hideButtons(): void {
 	document.body.classList.add('rgh-clean-rich-text-editor');
@@ -14,7 +14,7 @@ function hideTextareaTooltip(): void {
 	}
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Hides unnecessary comment field tooltips and toolbar items.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/53629083-a4fe8900-3c47-11e9-8211-bfe2d254ffcb.png'

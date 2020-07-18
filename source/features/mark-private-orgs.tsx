@@ -5,9 +5,9 @@ import select from 'select-dom';
 import EyeClosedIcon from 'octicon/eye-closed.svg';
 import * as pageDetect from 'github-url-detection';
 
-import * as api from '../libs/api';
-import features from '../libs/features';
-import {getUsername} from '../libs/utils';
+import features from '.';
+import * as api from '../github-helpers/api';
+import {getUsername} from '../github-helpers';
 
 const getPublicOrganizationsNames = cache.function(async (username: string): Promise<string[]> => {
 	// API v4 seems to *require* `org:read` permission AND it includes private organizations as well, which defeats the purpose. There's no way to filter them.
@@ -34,7 +34,7 @@ async function init(): Promise<false | void> {
 	}
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Marks private organizations on your own profile.',
 	screenshot: 'https://user-images.githubusercontent.com/6775216/44633467-d5dcc900-a959-11e8-9116-e6b0ffef66af.png'

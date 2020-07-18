@@ -1,12 +1,11 @@
 import React from 'dom-chef';
 import select from 'select-dom';
 import delegate from 'delegate-it';
-import * as textFieldEdit from 'text-field-edit';
 import * as pageDetect from 'github-url-detection';
+import * as textFieldEdit from 'text-field-edit';
 
-import features from '../libs/features';
-import {logError} from '../libs/utils';
-import onPrMergePanelOpen from '../libs/on-pr-merge-panel-open';
+import features from '.';
+import onPrMergePanelOpen from '../github-events/on-pr-merge-panel-open';
 
 const prTitleFieldSelector = '.js-issue-update [name="issue[title]"]';
 const prTitleSubmitSelector = '.js-issue-update [type="submit"]';
@@ -32,7 +31,7 @@ function needsSubmission(): boolean {
 
 	// Ensure that the required fields are on the page
 	if (!select.exists(prTitleFieldSelector) || !select.exists(prTitleSubmitSelector)) {
-		logError(__filebasename, 'Can’t update the PR title');
+		features.error(__filebasename, 'Can’t update the PR title');
 		return false;
 	}
 
@@ -103,7 +102,7 @@ function deinit(): void {
 	listeners.length = 0;
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Uses the PR’s title as the default squash commit title and updates the PR’s title to the match the commit title, if changed.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/51669708-9a712400-1ff7-11e9-913a-ac1ea1050975.png'

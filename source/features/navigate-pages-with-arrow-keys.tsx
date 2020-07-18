@@ -1,6 +1,6 @@
 import select from 'select-dom';
 
-import features from '../libs/features';
+import features from '.';
 
 function init(): void {
 	const createNextPageButton = select('a.next_page');
@@ -14,7 +14,7 @@ function init(): void {
 	}
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Adds shortcuts to navigate through pages with pagination: `←` and `→`.',
 	screenshot: false,

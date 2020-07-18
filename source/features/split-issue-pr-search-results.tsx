@@ -3,8 +3,8 @@ import React from 'dom-chef';
 import select from 'select-dom';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
-import SearchQuery from '../libs/search-query';
+import features from '.';
+import SearchQuery from '../github-helpers/search-query';
 
 function cleanLinks(): void {
 	for (const link of select.all<HTMLAnchorElement>('.menu-item')) {
@@ -12,9 +12,9 @@ function cleanLinks(): void {
 	}
 }
 
-type GitHubDiscussionType = 'pr' | 'issue';
+type GitHubConversationType = 'pr' | 'issue';
 
-function createUrl(type: GitHubDiscussionType, pathname = location.pathname): string {
+function createUrl(type: GitHubConversationType, pathname = location.pathname): string {
 	const url = new URL(pathname, location.origin);
 	url.searchParams.set('q', pageSearchQuery.get() + ` is:${type}`);
 	url.searchParams.set('type', 'Issues');
@@ -62,7 +62,7 @@ function init(): void {
 	}
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Separates issues from PRs in the global search.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/52181103-35a09f80-2829-11e9-9c6f-57f2e08fc5b2.png'

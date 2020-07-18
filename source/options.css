@@ -1,6 +1,11 @@
+@media not screen and (width: 400px) { /* Excludes Edge */
+	:root {
+		min-width: 550px;
+	}
+}
+
 :root {
 	--github-red: #cb2431;
-	min-width: 550px;
 }
 
 p {
@@ -41,7 +46,7 @@ p {
 }
 
 .js-features .description {
-	opacity: 0.8;
+	opacity: 80%;
 }
 
 .js-features a {

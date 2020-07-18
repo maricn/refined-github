@@ -3,8 +3,8 @@ import domify from 'doma';
 import select from 'select-dom';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
-import {isFirefox} from '../libs/utils';
+import features from '.';
+import {isFirefox} from '../github-helpers';
 
 const isGist = (link: HTMLAnchorElement): boolean =>
 	!link.pathname.includes('.') && // Exclude links to embed files
@@ -52,7 +52,7 @@ function init(): void {
 		.forEach(embedGist);
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Embeds linked gists. Not supported by Firefox.',
 	screenshot: 'https://user-images.githubusercontent.com/6978877/33911900-c62ee968-df8b-11e7-8685-506ffafc60b4.PNG'

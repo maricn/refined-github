@@ -5,7 +5,7 @@ import delegate from 'delegate-it';
 import * as pageDetect from 'github-url-detection';
 import LinkExternalIcon from 'octicon/link-external.svg';
 
-import features from '../libs/features';
+import features from '.';
 
 const confirmationRequiredCount = 10;
 
@@ -25,7 +25,7 @@ function openNotifications({delegateTarget}: delegate.Event): void {
 		return;
 	}
 
-	browser.runtime.sendMessage({
+	void browser.runtime.sendMessage({
 		openUrls: unreadNotifications.map(element => element.querySelector('a')!.href)
 	});
 
@@ -55,7 +55,11 @@ function addOpenReposButton(): void {
 }
 
 function addOpenAllButton(): void {
-	select('.js-check-all-container .Box-header')!.append(
+	// Selector works on:
+	// https://github.com/notifications (Grouped by date)
+	// https://github.com/notifications (Grouped by repo)
+	// https://github.com/notifications?query=reason%3Acomment (which is an unsaved filter)
+	select('.js-check-all-container .js-bulk-action-toasts ~ div .Box-header')!.append(
 		<button className="btn btn-sm rgh-open-notifications-button" type="button">
 			<LinkExternalIcon className="mr-1"/>Open all unread
 		</button>
@@ -70,12 +74,11 @@ function update(): void {
 }
 
 function init(): void {
-	document.addEventListener('refined-github:mark-unread:notifications-added', update);
 	delegate(document, '.rgh-open-notifications-button', 'click', openNotifications);
 	update();
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Adds button to open all your unread notifications at once.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/80861295-fbad8b80-8c6d-11ea-87a4-8025fbc3a3f4.png'

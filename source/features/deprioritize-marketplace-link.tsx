@@ -4,7 +4,7 @@ import domLoaded from 'dom-loaded';
 import elementReady from 'element-ready';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
+import features from '.';
 
 async function init(): Promise<void> {
 	const marketPlaceLink = (await elementReady('.Header-link[href="/marketplace"]'));
@@ -21,7 +21,7 @@ async function init(): Promise<void> {
 	);
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Moves the "Marketplace" link from the black header bar to the profile dropdown.',
 	screenshot: false

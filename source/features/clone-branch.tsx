@@ -1,15 +1,15 @@
 import React from 'dom-chef';
 import select from 'select-dom';
 import delegate from 'delegate-it';
-import gitBranch from 'octicon/git-branch.svg';
-import * as textFieldEdit from 'text-field-edit';
+import GitBranchIcon from 'octicon/git-branch.svg';
 import * as pageDetect from 'github-url-detection';
+import * as textFieldEdit from 'text-field-edit';
 
-import * as api from '../libs/api';
-import features from '../libs/features';
-import LoadingIcon from '../libs/icon-loading';
-import {getRepoURL, getRepoGQL} from '../libs/utils';
-import observeElement from '../libs/simplified-element-observer';
+import features from '.';
+import * as api from '../github-helpers/api';
+import LoadingIcon from '../github-helpers/icon-loading';
+import observeElement from '../helpers/simplified-element-observer';
+import {getRepoURL, getRepoGQL} from '../github-helpers';
 
 const getBranchBaseSha = async (branchName: string): Promise<string> => {
 	const {repository} = await api.v4(`
@@ -38,8 +38,7 @@ async function createBranch(newBranchName: string, baseSha: string): Promise<tru
 	return response.ok || response.message;
 }
 
-async function cloneBranch(event: delegate.Event<MouseEvent, HTMLButtonElement>): Promise<void> {
-	const cloneButton = event.delegateTarget;
+async function cloneBranch({delegateTarget: cloneButton}: delegate.Event<MouseEvent, HTMLButtonElement>): Promise<void> {
 	const branchName = cloneButton.closest('[branch]')!.getAttribute('branch')!;
 
 	const currentBranch = getBranchBaseSha(branchName);
@@ -71,7 +70,10 @@ async function cloneBranch(event: delegate.Event<MouseEvent, HTMLButtonElement>)
 }
 
 function init(): void | false {
-	const deleteIcons = select.all('branch-filter-item-controller .octicon-trashcan');
+	const deleteIcons = select.all([
+		'branch-filter-item-controller .octicon-trashcan', // Pre "Repository refresh" layout
+		'branch-filter-item .octicon-trashcan'
+	]);
 	// If the user does not have rights to delete a branch, they can’t create one either
 	if (deleteIcons.length === 0) {
 		return false;
@@ -85,7 +87,7 @@ function init(): void | false {
 				aria-label="Clone this branch"
 				className="link-gray btn-link tooltipped tooltipped-nw ml-3 rgh-clone-branch"
 			>
-				{gitBranch()}
+				<GitBranchIcon/>
 			</button>
 		);
 	}
@@ -93,7 +95,7 @@ function init(): void | false {
 	delegate(document, '.rgh-clone-branch', 'click', cloneBranch);
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Clone a branch from the branches list.',
 	screenshot: 'https://user-images.githubusercontent.com/16872793/76802029-2a020500-67ad-11ea-95dc-bee1b1352976.png'
@@ -101,7 +103,10 @@ features.add({
 	include: [
 		pageDetect.isBranches
 	],
-	init: () => {
-		observeElement('[data-target="branch-filter-controller.results"]', init);
+	init() {
+		observeElement([
+			'[data-target="branch-filter-controller.results"]', // Pre "Repository refresh" layout
+			'[data-target="branch-filter.result"]'
+		].join(), init);
 	}
 });

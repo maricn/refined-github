@@ -3,7 +3,7 @@ import select from 'select-dom';
 import delegate from 'delegate-it';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
+import features from '.';
 
 function generateSubmenu(hideButton: Element): void {
 	if (hideButton.closest('.rgh-hide-comments-faster-details')) {
@@ -73,7 +73,7 @@ function init(): void {
 	delegate(document, '.rgh-hide-comments-faster-details', 'toggle', resetDropdowns, true);
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Simplifies the UI to hide comments.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/43039221-1ddc91f6-8d29-11e8-9ed4-93459191a510.gif'

@@ -6,18 +6,18 @@ import delegate from 'delegate-it';
 import VersionIcon from 'octicon/versions.svg';
 import * as pageDetect from 'github-url-detection';
 
-import * as api from '../libs/api';
-import features from '../libs/features';
-import LoadingIcon from '../libs/icon-loading';
-import {getRepoGQL, getReference, looseParseInt, getCleanPathname} from '../libs/utils';
+import features from '.';
+import * as api from '../github-helpers/api';
+import GitHubURL from '../github-helpers/github-url';
+import LoadingIcon from '../github-helpers/icon-loading';
+import {getRepoGQL} from '../github-helpers';
+import looseParseInt from '../helpers/loose-parse-int';
 
 const getPullRequestBlameCommit = mem(async (commit: string, prNumber: number, currentFilename: string): Promise<string> => {
 	const {repository} = await api.v4(`
 		repository(${getRepoGQL()}) {
 			file: object(expression: "${commit}:${currentFilename}") {
-				... on Blob {
-					id
-				}
+				id
 			}
 			object(expression: "${commit}") {
 				... on Commit {
@@ -66,17 +66,15 @@ async function redirectToBlameCommit(event: delegate.Event<MouseEvent, HTMLAncho
 	const blameHunk = blameElement.closest('.blame-hunk')!;
 	const prNumber = looseParseInt(select('.issue-link', blameHunk)!.textContent!);
 	const prCommit = select<HTMLAnchorElement>('a.message', blameHunk)!.pathname.split('/').pop()!;
-	const [, currentFilename] = getCleanPathname().split(getReference()! + '/');
+	const blameUrl = new GitHubURL(location.href);
 
 	const spinner = <LoadingIcon className="mr-2"/>;
 	blameElement.firstElementChild!.replaceWith(spinner);
 
 	try {
-		const prBlameCommit = await getPullRequestBlameCommit(prCommit, prNumber, currentFilename);
-		const lineNumber = select('.js-line-number', blameHunk)!.textContent!;
-		const href = new URL(location.href.replace(getReference()!, prBlameCommit));
-		href.hash = 'L' + lineNumber;
-		location.href = String(href);
+		blameUrl.branch = await getPullRequestBlameCommit(prCommit, prNumber, blameUrl.filePath);
+		blameUrl.hash = 'L' + select('.js-line-number', blameHunk)!.textContent!;
+		location.href = String(blameUrl);
 	} catch (error) {
 		spinner.replaceWith(<VersionIcon/>);
 		alert(error.message);
@@ -111,7 +109,7 @@ function init(): void | false {
 	}
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'When exploring blames, `Alt`-clicking the “Reblame” buttons will extract the associated PR’s commits first, instead of treating the commit a single change.',
 	screenshot: 'https://user-images.githubusercontent.com/16872793/77248541-8e3f2180-6c10-11ea-91d4-221ccc0ecebb.png'

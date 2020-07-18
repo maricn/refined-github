@@ -3,10 +3,10 @@ import React from 'dom-chef';
 import select from 'select-dom';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
-import getTextNodes from '../libs/get-text-nodes';
-import onPrFileLoad from '../libs/on-pr-file-load';
-import onNewComments from '../libs/on-new-comments';
+import features from '.';
+import getTextNodes from '../helpers/get-text-nodes';
+import onPrFileLoad from '../github-events/on-pr-file-load';
+import onNewComments from '../github-events/on-new-comments';
 
 // `splitText` is used before and after each whitespace group so a new whitespace-only text node is created. This new node is then wrapped in a <span>
 function showWhiteSpacesOn(line: Element): void {
@@ -43,12 +43,8 @@ function showWhiteSpacesOn(line: Element): void {
 			// Update cached variable here because it just changed
 			text = textNode.textContent!;
 
-			const whitespace = textNode.nextSibling!.textContent!
-				.replace(/ /g, '·')
-				.replace(/\t/g, '→');
-
 			textNode.after(
-				<span data-rgh-whitespace={whitespace}>
+				<span data-rgh-whitespace={thisCharacter === '\t' ? 'tab' : 'space'}>
 					{textNode.nextSibling}
 				</span>
 			);
@@ -72,7 +68,7 @@ async function init(): Promise<void> {
 	}
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Shows whitespace characters.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/61187598-f9118380-a6a5-11e9-985a-990a7f798805.png'

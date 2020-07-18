@@ -1,19 +1,18 @@
 import select from 'select-dom';
 
-import features from '../libs/features';
-import {getUsername} from '../libs/utils';
+import features from '.';
+import {getUsername} from '../github-helpers';
 
 function init(): false | void {
 	const menuItem = select(`a[href="/${getUsername()}"]`);
-
-	if (menuItem) {
-		menuItem.dataset.hotkey = 'g m';
-	} else {
+	if (!menuItem) {
 		return false;
 	}
+
+	menuItem.dataset.hotkey = 'g m';
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Adds a keyboard shortcut to visit your own profile: `g` `m`.',
 	screenshot: false,

@@ -2,8 +2,8 @@ import React from 'dom-chef';
 import select from 'select-dom';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
-import getDefaultBranch from '../libs/get-default-branch';
+import features from '.';
+import getDefaultBranch from '../github-helpers/get-default-branch';
 
 async function init(): Promise<false | void> {
 	const defaultBranch = await getDefaultBranch();
@@ -19,7 +19,7 @@ async function init(): Promise<false | void> {
 	);
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Warns you when creating a pull request from the default branch, as it’s an anti-pattern.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/52543516-3ca94e00-2de5-11e9-9f80-ff8f9fe8bdc4.png'

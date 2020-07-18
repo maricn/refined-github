@@ -4,8 +4,8 @@ import select from 'select-dom';
 import AlertIcon from 'octicon/alert.svg';
 import * as pageDetect from 'github-url-detection';
 
-import * as api from '../libs/api';
-import features from '../libs/features';
+import features from '.';
+import * as api from '../github-helpers/api';
 
 interface PRConfig {
 	number: string;
@@ -54,7 +54,7 @@ async function init(): Promise<false | void> {
 		if (data[pr.key].pullRequest.mergeable === 'CONFLICTING') {
 			pr.link.after(
 				<a
-					className="rgh-conflict-marker tooltipped tooltipped-n m-0 text-gray mr-1"
+					className="rgh-conflict-marker tooltipped tooltipped-e m-0 text-gray mr-1"
 					aria-label="This PR has conflicts that must be resolved"
 					href={`${pr.link.pathname}#partial-pull-merging`}
 				>
@@ -65,14 +65,14 @@ async function init(): Promise<false | void> {
 	}
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Shows which PRs have conflicts in PR lists',
 	screenshot:
 		'https://user-images.githubusercontent.com/9092510/62777551-2affe500-baae-11e9-8ba4-67f078347913.png'
 }, {
 	include: [
-		pageDetect.isDiscussionList
+		pageDetect.isConversationList
 	],
 	init
 });

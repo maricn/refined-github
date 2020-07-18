@@ -5,21 +5,29 @@ import TagIcon from 'octicon/tag.svg';
 import elementReady from 'element-ready';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
-import * as api from '../libs/api';
-import {appendBefore} from '../libs/dom-utils';
-import {getRepoURL, getRepoGQL, looseParseInt} from '../libs/utils';
+import features from '.';
+import * as api from '../github-helpers/api';
+import looseParseInt from '../helpers/loose-parse-int';
+import {appendBefore} from '../helpers/dom-utils';
+import {createDropdownItem} from './more-dropdown';
+import {getRepoURL, getRepoGQL} from '../github-helpers';
 
 const repoUrl = getRepoURL();
 const cacheKey = `releases-count:${repoUrl}`;
 
-function parseCountFromDom(): number | false {
-	if (pageDetect.isRepoRoot()) {
-		const releasesCountElement = select('.numbers-summary a[href$="/releases"] .num');
-		return Number(releasesCountElement ? looseParseInt(releasesCountElement.textContent!) : 0);
+function parseCountFromDom(): number {
+	const releasesCountElement = select('.numbers-summary a[href$="/releases"] .num');
+	if (releasesCountElement) {
+		return looseParseInt(releasesCountElement.textContent!);
 	}
 
-	return false;
+	// In "Repository refresh" layout, look for the releases link in the sidebar
+	const moreReleasesCountElement = select('[href$="/tags"] strong');
+	if (moreReleasesCountElement) {
+		return looseParseInt(moreReleasesCountElement.textContent!);
+	}
+
+	return 0;
 }
 
 async function fetchFromApi(): Promise<number> {
@@ -34,7 +42,7 @@ async function fetchFromApi(): Promise<number> {
 	return repository.refs.totalCount;
 }
 
-const getReleaseCount = cache.function(async () => parseCountFromDom() ?? fetchFromApi(), {
+const getReleaseCount = cache.function(async () => pageDetect.isRepoRoot() ? parseCountFromDom() : fetchFromApi(), {
 	maxAge: 1,
 	staleWhileRevalidate: 4,
 	cacheKey: () => cacheKey
@@ -51,16 +59,66 @@ async function init(): Promise<false | void> {
 		return false;
 	}
 
+	await elementReady('.pagehead + *'); // Wait for the tab bar to be loaded
+
+	const repoNavigationBar = select('.js-repo-nav.UnderlineNav');
+	if (repoNavigationBar) {
+		// "Repository refresh" layout
+		const releasesTab = (
+			<a
+				href={`/${repoUrl}/releases`}
+				className="js-selected-navigation-item UnderlineNav-item hx_underlinenav-item no-wrap js-responsive-underlinenav-item"
+				data-hotkey="g r"
+				data-selected-links="repo_releases"
+				data-tab-item="rgh-releases-item"
+			>
+				<TagIcon className="UnderlineNav-octicon"/>
+				<span data-content="Releases">Releases</span>
+				{count && <span className="Counter">{count}</span>}
+			</a>
+		);
+
+		select(':scope > ul', repoNavigationBar)!.append(
+			<li className="d-flex">
+				{releasesTab}
+			</li>
+		);
+
+		// Update "selected" tab mark
+		if (pageDetect.isReleasesOrTags()) {
+			const selected = select('.UnderlineNav-item.selected');
+			if (selected) {
+				selected.classList.remove('selected');
+				selected.removeAttribute('aria-current');
+			}
+
+			releasesTab.classList.add('selected');
+			releasesTab.setAttribute('aria-current', 'page');
+		}
+
+		select('[data-menu-item="insights-tab"]', repoNavigationBar)!.after(
+			createDropdownItem('Releases', `/${repoUrl}/releases`, {
+				'data-menu-item': 'rgh-releases-item'
+			})
+		);
+
+		return;
+	}
+
 	const releasesTab = (
 		<a href={`/${repoUrl}/releases`} className="reponav-item" data-hotkey="g r">
 			<TagIcon/>
 			<span> Releases </span>
-			{count === undefined ? '' : <span className="Counter">{count}</span>}
+			{count && <span className="Counter">{count}</span>}
 		</a>
 	);
 
-	await elementReady('.pagehead + *'); // Wait for the tab bar to be loaded
-	appendBefore('.reponav', '.reponav-dropdown, [data-selected-links^="repo_settings"]', releasesTab);
+	appendBefore(
+		// GHE doesn't have `.reponav > ul`
+		select('.reponav > ul') ?? select('.reponav')!,
+		'.reponav-dropdown, [data-selected-links^="repo_settings"]',
+		releasesTab
+	);
 
 	// Update "selected" tab mark
 	if (pageDetect.isReleasesOrTags()) {
@@ -74,7 +132,7 @@ async function init(): Promise<false | void> {
 	}
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Adds a `Releases` tab and a keyboard shortcut: `g` `r`.',
 	screenshot: 'https://cloud.githubusercontent.com/assets/170270/13136797/16d3f0ea-d64f-11e5-8a45-d771c903038f.png',

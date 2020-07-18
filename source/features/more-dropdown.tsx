@@ -9,15 +9,18 @@ import BranchIcon from 'octicon/git-branch.svg';
 import HistoryIcon from 'octicon/history.svg';
 import PackageIcon from 'octicon/package.svg';
 
-import features from '../libs/features';
-import {appendBefore} from '../libs/dom-utils';
-import {getRepoURL, getReference} from '../libs/utils';
+import features from '.';
+import {appendBefore} from '../helpers/dom-utils';
+import {getRepoURL, getCurrentBranch} from '../github-helpers';
 
 const repoUrl = getRepoURL();
 
 function createDropdown(): void {
 	// Markup copied from native GHE dropdown
-	appendBefore('.reponav', '[data-selected-links^="repo_settings"]',
+	appendBefore(
+		// GHE doesn't have `reponav > ul`
+		select('.reponav > ul') ?? select('.reponav')!,
+		'[data-selected-links^="repo_settings"]',
 		<details className="reponav-dropdown details-overlay details-reset">
 			<summary className="btn-link reponav-item" aria-haspopup="menu">
 				{'More '}
@@ -28,22 +31,45 @@ function createDropdown(): void {
 	);
 }
 
+/* eslint-disable-next-line import/prefer-default-export */
+export function createDropdownItem(label: string, url: string, attributes?: Record<string, string>): Element {
+	return (
+		<li {...attributes}>
+			<a role="menuitem" className="dropdown-item" href={url}>
+				{label}
+			</a>
+		</li>
+	);
+}
+
 async function init(): Promise<void> {
 	await elementReady('.pagehead + *'); // Wait for the tab bar to be loaded
+
+	const reference = getCurrentBranch();
+	const compareUrl = `/${repoUrl}/compare/${reference}`;
+	const commitsUrl = `/${repoUrl}/commits/${reference}`;
+	const dependenciesUrl = `/${repoUrl}/network/dependencies`;
+
+	const nav = select('.js-responsive-underlinenav .UnderlineNav-body');
+	if (nav) {
+		// "Repository refresh" layout
+		nav.parentElement!.classList.add('rgh-has-more-dropdown');
+		select('.js-responsive-underlinenav-overflow ul')!.append(
+			<li className="dropdown-divider" role="separator"/>,
+			createDropdownItem('Compare', compareUrl),
+			pageDetect.isEnterprise() ? '' : createDropdownItem('Dependencies', dependenciesUrl),
+			createDropdownItem('Commits', commitsUrl),
+			createDropdownItem('Branches', `/${repoUrl}/branches`)
+		);
+		return;
+	}
+
+	// Pre "Repository refresh" layout
 	if (!select.exists('.reponav-dropdown')) {
 		createDropdown();
 	}
 
-	let compareUrl = `/${repoUrl}/compare`;
-	let commitsUrl = `/${repoUrl}/commits`;
-	const reference = getReference();
-	if (reference) {
-		compareUrl += `/${reference}`;
-		commitsUrl += `/${reference}`;
-	}
-
 	const menu = select('.reponav-dropdown .dropdown-menu')!;
-
 	menu.append(
 		<a href={compareUrl} className="rgh-reponav-more dropdown-item">
 			<DiffIcon/> Compare
@@ -78,7 +104,7 @@ async function init(): Promise<void> {
 	}
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Adds links to `Commits`, `Branches`, `Dependencies`, and `Compare` in a new `More` dropdown.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/55089736-d94f5300-50e8-11e9-9095-329ac74c1e9f.png'

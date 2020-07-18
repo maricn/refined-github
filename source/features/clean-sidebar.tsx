@@ -4,9 +4,9 @@ import select from 'select-dom';
 import oneTime from 'onetime';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
-import onReplacedElement from '../libs/on-replaced-element';
-import onElementRemoval from '../libs/on-element-removal';
+import features from '.';
+import onElementRemoval from '../helpers/on-element-removal';
+import onReplacedElement from '../helpers/on-replaced-element';
 
 const canEditSidebar = oneTime((): boolean => select.exists('.sidebar-labels .octicon-gear'));
 
@@ -33,7 +33,11 @@ Expected DOM:
 @param containerSelector Element that contains `details` or `.discussion-sidebar-heading`
 */
 function cleanSection(containerSelector: string): boolean {
-	const container = select(containerSelector)!;
+	const container = select(containerSelector);
+	if (!container) {
+		return false;
+	}
+
 	const header = select(':scope > details, :scope > .discussion-sidebar-heading', container)!;
 
 	// Magic. Do not touch.
@@ -84,11 +88,7 @@ async function clean(): Promise<void> {
 
 		const content = select('[aria-label="Select reviewers"] > .css-truncate')!;
 		if (!content.firstElementChild) {
-			if (select.exists('.js-convert-to-draft')) {
-				content.remove(); // Drop "No reviews"
-			} else {
-				cleanSection('[aria-label="Select reviewers"]');
-			}
+			content.remove(); // Drop "No reviews"
 		}
 	}
 
@@ -109,9 +109,9 @@ async function clean(): Promise<void> {
 	cleanSection('[aria-label="Select milestones"]');
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
-	description: 'Hides empty sections (or just their "empty" label) in the discussion sidebar.',
+	description: 'Hides empty sections (or just their "empty" label) in the conversation sidebar.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/57199809-20691780-6fb6-11e9-9672-1ad3f9e1b827.png'
 }, {
 	include: [
@@ -119,7 +119,7 @@ features.add({
 		pageDetect.isPRConversation
 	],
 	additionalListeners: [
-		() => onReplacedElement('#partial-discussion-sidebar', clean)
+		() => void onReplacedElement('#partial-discussion-sidebar', clean)
 	],
 	init: clean
 });

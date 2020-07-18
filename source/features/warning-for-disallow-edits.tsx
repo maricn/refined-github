@@ -5,7 +5,7 @@ import oneTime from 'onetime';
 import delegate from 'delegate-it';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
+import features from '.';
 
 const getWarning = oneTime(() => (
 	<div className="flash flash-error mt-3 rgh-warning-for-disallow-edits">
@@ -27,17 +27,17 @@ function toggleHandler(event: delegate.Event<UIEvent, HTMLInputElement>): void {
 	update(event.delegateTarget);
 }
 
-function init(): void {
+function init(): void | false {
 	const checkbox = select<HTMLInputElement>('[name="collab_privs"]');
 	if (!checkbox) {
-		return;
+		return false;
 	}
 
 	update(checkbox); // The sidebar checkbox may already be un-checked
 	delegate(document, '[name="collab_privs"]', 'change', toggleHandler);
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Warns you when unchecking `Allow edits from maintainers`, as it’s maintainer-hostile.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/53151888-24101380-35ef-11e9-8d30-d6315ad97325.gif'

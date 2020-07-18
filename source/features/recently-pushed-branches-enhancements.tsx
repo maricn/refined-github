@@ -3,8 +3,8 @@ import React from 'dom-chef';
 import select from 'select-dom';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
-import {getRepoURL} from '../libs/utils';
+import features from '.';
+import {getRepoURL} from '../github-helpers';
 
 const fragmentURL = `/${getRepoURL()}/show_partial?partial=tree%2Frecently_touched_branches_list`;
 const selector = `[data-url='${fragmentURL}' i], [src='${fragmentURL}' i]`;
@@ -48,10 +48,10 @@ async function init(): Promise<false | void> {
 	document.body.classList.add('rgh-recently-pushed-branches');
 
 	// Move or add list next to the notifications bell
-	select('.Header-item--full,.HeaderMenu nav')!.after(widget);
+	select.last('.Header-item--full,.HeaderMenu nav')!.after(widget);
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Moves the "Recently-pushed branches" widget to the header to avoid content jumps. Also adds it to more pages in the repo.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/56466173-da517700-643f-11e9-8eb5-9b20017fa613.gif'
