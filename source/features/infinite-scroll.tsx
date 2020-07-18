@@ -2,7 +2,7 @@ import select from 'select-dom';
 import debounce from 'debounce-fn';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
+import features from '.';
 
 let button: HTMLButtonElement | undefined;
 
@@ -56,7 +56,7 @@ function init(): void {
 	}
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Automagically expands the newsfeed when you scroll down.',
 	screenshot: false

@@ -4,37 +4,42 @@ import select from 'select-dom';
 import elementReady from 'element-ready';
 import * as pageDetect from 'github-url-detection';
 
-import * as api from '../libs/api';
-import features from '../libs/features';
-import {getForkedRepo, getUsername, pluralize} from '../libs/utils';
+import features from '.';
+import * as api from '../github-helpers/api';
+import pluralize from '../helpers/pluralize';
+import {getForkedRepo, getUsername, getRepoURL} from '../github-helpers';
 
 function getLinkCopy(count: number): string {
 	return pluralize(count, 'one open pull request', '$$ open pull requests');
 }
 
 const countPRs = cache.function(async (forkedRepo: string): Promise<[number, number?]> => {
-	// Grab the PR count and the first PR's URL
-	// This allows to link to the PR directly if only one is found
 	const {search} = await api.v4(`
 		search(
-			first: 1,
+			first: 100,
 			type: ISSUE,
 			query: "repo:${forkedRepo} is:pr is:open author:${getUsername()}"
 		) {
-			issueCount
 			nodes {
 				... on PullRequest {
 					number
+					headRepository {
+						nameWithOwner
+					}
 				}
 			}
 		}
 	`);
 
-	if (search.issueCount === 1) {
-		return [1, search.nodes[0].number];
+	// Only show PRs originated from the current repo
+	const prs = search.nodes.filter((pr: AnyObject) => pr.headRepository.nameWithOwner.toLowerCase() === getRepoURL());
+
+	// If only one is found, pass the PR number so we can link to the PR directly
+	if (prs.length === 1) {
+		return [1, prs[0].number];
 	}
 
-	return [search.issueCount];
+	return [prs.length];
 }, {
 	maxAge: 1 / 2, // Stale after 12 hours
 	staleWhileRevalidate: 2,
@@ -43,7 +48,7 @@ const countPRs = cache.function(async (forkedRepo: string): Promise<[number, num
 
 async function getPRs(): Promise<[number, string] | []> {
 	await elementReady('.repohead + *'); // Wait for the tab bar to be loaded
-	if (!pageDetect.isRepoWithAccess()) {
+	if (!pageDetect.canUserEditRepo()) {
 		return [];
 	}
 
@@ -80,7 +85,7 @@ async function initDeleteHint(): Promise<void | false> {
 	);
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'In your forked repos, shows number of your open PRs to the original repo.',
 	screenshot: 'https://user-images.githubusercontent.com/1922624/76398271-e0648500-637c-11ea-8210-53dda1be9d51.png'
@@ -95,7 +100,7 @@ features.add({
 	init: initHeadHint
 }, {
 	include: [
-		pageDetect.isRepoSettings
+		pageDetect.isRepoMainSettings
 	],
 	exclude: [
 		() => !pageDetect.isForkedRepo()

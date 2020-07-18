@@ -1,14 +1,14 @@
 import React from 'dom-chef';
+import cache from 'webext-storage-cache';
 import select from 'select-dom';
 import delegate from 'delegate-it';
-import cache from 'webext-storage-cache';
 import CheckIcon from 'octicon/check.svg';
 import elementReady from 'element-ready';
 import * as pageDetect from 'github-url-detection';
 
-import * as api from '../libs/api';
-import features from '../libs/features';
-import {getRepoGQL, getRepoURL} from '../libs/utils';
+import features from '.';
+import * as api from '../github-helpers/api';
+import {getRepoGQL, getRepoURL} from '../github-helpers';
 
 const reviewsFilterSelector = '#reviews-select-menu';
 
@@ -112,12 +112,12 @@ async function addChecksFilter(): Promise<void> {
 	reviewsFilter.after(checksFilter);
 }
 
-function init(): void {
+async function init(): Promise<void> {
 	delegate(document, reviewsFilterSelector, 'toggle', addDraftFilter, true);
-	addChecksFilter();
+	await addChecksFilter();
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Adds Checks and Draft PR dropdown filters in PR lists.',
 	screenshot: 'https://user-images.githubusercontent.com/202916/74453250-6d9de200-4e82-11ea-8fd4-7c0de57e001a.png'

@@ -1,13 +1,14 @@
 import delegate from 'delegate-it';
+import * as pageDetect from 'github-url-detection';
 import * as textFieldEdit from 'text-field-edit';
 
-import features from '../libs/features';
-import {listenToCommentFields} from './comment-fields-keyboard-shortcuts';
+import features from '.';
+import onCommentFieldKeydown from '../github-events/on-comment-field-keydown';
 
 const formattingCharacters = ['`', '\'', '"', '[', '(', '{', '*', '_', '~'];
 const matchingCharacters = ['`', '\'', '"', ']', ')', '}', '*', '_', '~'];
 
-function handler(event: delegate.Event<KeyboardEvent, HTMLTextAreaElement>): void {
+function eventHandler(event: delegate.Event<KeyboardEvent, HTMLTextAreaElement>): void {
 	const field = event.delegateTarget;
 
 	if (!formattingCharacters.includes(event.key)) {
@@ -29,14 +30,17 @@ function handler(event: delegate.Event<KeyboardEvent, HTMLTextAreaElement>): voi
 }
 
 function init(): void {
-	listenToCommentFields(handler);
+	onCommentFieldKeydown(eventHandler);
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Wraps selected text when pressing one of Markdown symbols instead of replacing it: (`[` `’` `"` `(` etc).',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/65020298-1f2dfb00-d957-11e9-9a2a-1c0ceab8d9e0.gif'
 }, {
+	include: [
+		pageDetect.hasCode
+	],
 	waitForDomReady: false,
 	repeatOnAjax: false,
 	init

@@ -2,10 +2,10 @@ import './ci-link.css';
 import oneTime from 'onetime';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
-import fetchDom from '../libs/fetch-dom';
-import {getRepoURL} from '../libs/utils';
-import {appendBefore} from '../libs/dom-utils';
+import features from '.';
+import fetchDom from '../helpers/fetch-dom';
+import {getRepoURL} from '../github-helpers';
+import {appendBefore} from '../helpers/dom-utils';
 
 // Look for the CI icon in the latest 2 days of commits #2990
 const getIcon = oneTime(fetchDom.bind(null,
@@ -28,7 +28,7 @@ async function init(): Promise<false | void> {
 	appendBefore('.pagehead h1', '.fork-flag', icon);
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Add build status and link to CI after the repo’s title.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/32562120-d65166e4-c4e8-11e7-90fb-cbaf36e2709f.png'

@@ -1,8 +1,8 @@
 import select from 'select-dom';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
-import {linkifiedURLClass, linkifyURLs, linkifyIssues} from '../libs/dom-formatters';
+import features from '.';
+import {linkifiedURLClass, linkifyURLs, linkifyIssues} from '../github-helpers/dom-formatters';
 
 function init(): false | void {
 	const wrappers = select.all(`
@@ -33,7 +33,7 @@ function init(): false | void {
 	}
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Linkifies URLs and issue references in code.',
 	screenshot: 'https://cloud.githubusercontent.com/assets/170270/25370217/61718820-29b3-11e7-89c5-2959eaf8cac8.png'

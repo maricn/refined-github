@@ -2,7 +2,7 @@ import React from 'dom-chef';
 import elementReady from 'element-ready';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
+import features from '.';
 
 async function init(): Promise<false | void> {
 	const exploreLink = await elementReady('.Header-link[href="/explore"]');
@@ -15,7 +15,7 @@ async function init(): Promise<false | void> {
 	);
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Adds a `Trending` link to the global navbar and a keyboard shortcut: `g` ` t`',
 	screenshot: false,

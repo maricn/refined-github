@@ -2,7 +2,7 @@ import select from 'select-dom';
 import elementReady from 'element-ready';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
+import features from '.';
 
 // Replace dropdown while keeping its sizing/positioning classes
 function replaceDropdownInPlace(dropdown: Element, form: Element): void {
@@ -58,7 +58,7 @@ async function unwrapActionJobRun(): Promise<void | false> {
 	replaceDropdownInPlace(dropdown, desiredForm);
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Makes some dropdowns 1-click instead of unnecessarily 2-click.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/80859624-9bfdb300-8c62-11ea-837f-7b7a28e6fdfc.png'

@@ -3,12 +3,19 @@ import elementReady from 'element-ready';
 import * as pageDetect from 'github-url-detection';
 import ChevronLeftIcon from 'octicon/chevron-left.svg';
 
-import features from '../libs/features';
-import {groupButtons} from '../libs/group-buttons';
-import getDefaultBranch from '../libs/get-default-branch';
-import {getRepoURL, getCurrentBranch, replaceBranch} from '../libs/utils';
+import features from '.';
+import GitHubURL from '../github-helpers/github-url';
+import {groupButtons} from '../github-helpers/group-buttons';
+import getDefaultBranch from '../github-helpers/get-default-branch';
+import {getCurrentBranch} from '../github-helpers';
 
 async function init(): Promise<false | void> {
+	const branchSelector = await elementReady<HTMLElement>('[data-hotkey="w"]');
+	// The branch selector is missing from History pages of files and folders (it only appears on the root)
+	if (!branchSelector) {
+		return false;
+	}
+
 	const defaultBranch = await getDefaultBranch();
 	const currentBranch = getCurrentBranch();
 
@@ -17,32 +24,36 @@ async function init(): Promise<false | void> {
 		return false;
 	}
 
-	let url;
+	const url = new GitHubURL(location.href);
 	if (pageDetect.isRepoRoot()) {
-		url = `/${getRepoURL()}`;
+		// The default branch of the root directory is just /user/repo/
+		url.route = '';
+		url.branch = '';
 	} else {
-		url = replaceBranch(currentBranch, defaultBranch);
+		url.branch = defaultBranch;
 	}
 
-	const branchSelector = (await elementReady('#branch-select-menu'))!;
 	const defaultLink = (
 		<a
-			className="btn btn-sm tooltipped tooltipped-ne"
-			href={url}
+			className="btn tooltipped tooltipped-ne"
+			href={String(url)}
 			aria-label="See this view on the default branch"
 		>
 			<ChevronLeftIcon/>
 		</a>
 	);
 
-	branchSelector.before(defaultLink);
+	if (branchSelector.classList.contains('btn-sm')) {
+		// Pre "Repository refresh" layout
+		defaultLink.classList.add('btn-sm');
+	}
 
-	const group = groupButtons([defaultLink, branchSelector]);
-	group.classList.add('m-0');
-	group.parentElement!.classList.add('flex-shrink-0');
+	branchSelector.parentElement!.before(defaultLink);
+	groupButtons([defaultLink, branchSelector.parentElement!]);
+	branchSelector.style.float = 'none';
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Adds link the default branch on directory listings and files.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/71886648-2891dc00-316f-11ea-98d8-c5bf6c24d85c.png'
@@ -51,6 +62,9 @@ features.add({
 		pageDetect.isRepoTree,
 		pageDetect.isSingleFile,
 		pageDetect.isRepoCommitList
+	],
+	exclude: [
+		pageDetect.isRepoHome
 	],
 	waitForDomReady: false,
 	init

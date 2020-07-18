@@ -4,9 +4,10 @@ import select from 'select-dom';
 import TagIcon from 'octicon/tag.svg';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
-import * as api from '../libs/api';
-import {getOwnerAndRepo, getRepoURL, getRepoGQL} from '../libs/utils';
+import features from '.';
+import * as api from '../github-helpers/api';
+import {getCommitHash} from './mark-merge-commits-in-list';
+import {getRepoURL, getRepoGQL} from '../github-helpers';
 
 interface CommitTags {
 	[name: string]: string[];
@@ -31,9 +32,6 @@ interface TagNode {
 	name: string;
 	target: CommonTarget;
 }
-
-const {ownerName, repoName} = getOwnerAndRepo();
-const cacheKey = `tags:${ownerName!}/${repoName!}`;
 
 function mergeTags(oldTags: CommitTags, newTags: CommitTags): CommitTags {
 	const result: CommitTags = {...oldTags};
@@ -90,22 +88,21 @@ async function getTags(lastCommit: string, after?: string): Promise<CommitTags> 
 			}
 		}
 		`);
-	const {nodes}: {nodes: TagNode[]} = repository.refs;
-	let tags = nodes.reduce((tags: CommitTags, node: TagNode) => {
+	const nodes: TagNode[] = repository.refs.nodes;
+
+	// If there are no tags in the repository
+	if (nodes.length === 0) {
+		return {};
+	}
+
+	let tags: CommitTags = {};
+	for (const node of nodes) {
 		const commit = node.target.commitResourcePath.split('/')[4];
-		const {name} = node;
 		if (!tags[commit]) {
 			tags[commit] = [];
 		}
 
-		tags[commit].push(name);
-
-		return tags;
-	}, {});
-
-	// If there are no tags in the repository
-	if (nodes.length === 0) {
-		return tags;
+		tags[commit].push(node.name);
 	}
 
 	const lastTag = nodes[nodes.length - 1].target;
@@ -121,12 +118,14 @@ async function getTags(lastCommit: string, after?: string): Promise<CommitTags> 
 }
 
 async function init(): Promise<void | false> {
+	const cacheKey = `tags:${getRepoURL()}`;
+
 	const commitsOnPage = select.all('li.commit');
-	const lastCommitOnPage = (commitsOnPage[commitsOnPage.length - 1].dataset.channel as string).split(':')[3];
+	const lastCommitOnPage = getCommitHash(commitsOnPage[commitsOnPage.length - 1]);
 	let cached = await cache.get<{[commit: string]: string[]}>(cacheKey) ?? {};
 	const commitsWithNoTags = [];
 	for (const commit of commitsOnPage) {
-		const targetCommit = (commit.dataset.channel as string).split(':')[3];
+		const targetCommit = getCommitHash(commit);
 		let targetTags = cached[targetCommit];
 		if (!targetTags) {
 			// No tags for this commit found in the cache, check in github
@@ -162,7 +161,7 @@ async function init(): Promise<void | false> {
 	await cache.set(cacheKey, cached, 1);
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Display the corresponding tags next to commits',
 	screenshot: 'https://user-images.githubusercontent.com/14323370/66400400-64ba7280-e9af-11e9-8d6c-07b35afde91f.png'

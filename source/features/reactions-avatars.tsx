@@ -1,11 +1,12 @@
 import './reactions-avatars.css';
 import React from 'dom-chef';
 import select from 'select-dom';
+import {flatZip} from 'flat-zip';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
-import onReplacedElement from '../libs/on-replaced-element';
-import {getUsername, flatZip, isFirefox} from '../libs/utils';
+import features from '.';
+import onReplacedElement from '../helpers/on-replaced-element';
+import {getUsername, isFirefox} from '../github-helpers';
 
 const arbitraryAvatarLimit = 36;
 const approximateHeaderLength = 3; // Each button header takes about as much as 3 avatars
@@ -49,31 +50,48 @@ function getParticipants(container: HTMLElement): Participant[] {
 	return participants;
 }
 
-function init(): void {
-	for (const list of select.all('.has-reactions .comment-reactions-options:not(.rgh-reactions)')) {
-		const avatarLimit = arbitraryAvatarLimit - (list.children.length * approximateHeaderLength);
+async function showAvatarsOn(commentReactions: Element): Promise<void> {
+	const avatarLimit = arbitraryAvatarLimit - (commentReactions.children.length * approximateHeaderLength);
 
-		const participantByReaction = [...list.children as HTMLCollectionOf<HTMLElement>].map(getParticipants);
-		const flatParticipants = flatZip(participantByReaction, avatarLimit);
+	const participantByReaction = select
+		.all(':scope > button', commentReactions)
+		.map(getParticipants);
+	const flatParticipants = flatZip(participantByReaction, avatarLimit);
 
-		for (const {container, username, imageUrl} of flatParticipants) {
-			container.append(
-				// Without this, Firefox will follow the link instead of submitting the reaction button
-				<a href={isFirefox ? undefined : `/${username}`}>
-					<img src={imageUrl}/>
-				</a>
-			);
+	for (const {container, username, imageUrl} of flatParticipants) {
+		container.append(
+			// Without this, Firefox will follow the link instead of submitting the reaction button
+			<a href={isFirefox ? undefined : `/${username}`} className="rounded-1 avatar-user">
+				<img src={imageUrl} className="avatar-user rounded-1"/>
+			</a>
+		);
+	}
+
+	const trackableElement = commentReactions.closest<HTMLElement>('[data-body-version]')!;
+	const trackingSelector = `[data-body-version="${trackableElement.dataset.bodyVersion!}"]`;
+	await onReplacedElement(trackingSelector, init);
+}
+
+const viewportObserver = new IntersectionObserver(changes => {
+	for (const change of changes) {
+		if (change.isIntersecting) {
+			void showAvatarsOn(change.target);
+			viewportObserver.unobserve(change.target);
 		}
+	}
+}, {
+	// Start loading a little before they become visible
+	rootMargin: '500px'
+});
 
-		list.classList.add('rgh-reactions');
-
-		const trackableElement = list.closest<HTMLElement>('.js-updatable-content')!;
-		const trackingSelector = `[data-url="${trackableElement.dataset.url!}"]`;
-		onReplacedElement(trackingSelector, init);
+async function init(): Promise<void> {
+	for (const commentReactions of select.all('.has-reactions .comment-reactions-options:not(.rgh-reactions)')) {
+		commentReactions.classList.add('rgh-reactions');
+		viewportObserver.observe(commentReactions);
 	}
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Adds reaction avatars showing *who* reacted to a comment',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/34438653-f66535a4-ecda-11e7-9406-2e1258050cfa.png'

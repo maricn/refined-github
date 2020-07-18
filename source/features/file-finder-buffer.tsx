@@ -3,7 +3,7 @@ import select from 'select-dom';
 import onetime from 'onetime';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
+import features from '.';
 
 const getBufferField = onetime((): HTMLInputElement => (
 	<input
@@ -14,8 +14,8 @@ const getBufferField = onetime((): HTMLInputElement => (
 ));
 
 function pjaxStartHandler(event: CustomEvent): void {
-	const destinationURL = event.detail?.url || '';
-	if (destinationURL.split('/')[5] !== 'find') {
+	const destinationURL = event.detail?.url;
+	if (!destinationURL || !pageDetect.isFileFinder(new URL(destinationURL))) {
 		return;
 	}
 
@@ -48,7 +48,7 @@ function init(): void {
 	window.addEventListener('pjax:complete', pjaxCompleteHandler);
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Lets you start typing your search immediately after invoking the File Finder (`t`), instead of having you wait for it to load first.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/75542106-1c811700-5a5a-11ea-8aa5-bea0472c59e2.gif'

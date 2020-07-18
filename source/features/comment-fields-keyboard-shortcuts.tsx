@@ -1,26 +1,11 @@
 import select from 'select-dom';
 import delegate from 'delegate-it';
+import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
+import features from '.';
+import onCommentFieldKeydown from '../github-events/on-comment-field-keydown';
 
-// eslint-disable-next-line import/prefer-default-export
-export function listenToCommentFields(callback: delegate.EventHandler<KeyboardEvent, HTMLTextAreaElement>): void {
-	delegate<HTMLTextAreaElement, KeyboardEvent>(document, '.js-comment-field, #commit-description-textarea', 'keydown', event => {
-		const field = event.delegateTarget;
-
-		// Don't do anything if the autocomplete helper is shown or if non-Roman input is being used
-		if (select.exists('.suggester', field.form!) || event.isComposing) {
-			return;
-		}
-
-		callback(event);
-	}, {
-		// Adds support for `esc` key; GitHub seems to use `stopPropagation` on it
-		capture: true
-	});
-}
-
-function handler(event: delegate.Event<KeyboardEvent, HTMLTextAreaElement>): void {
+function eventHandler(event: delegate.Event<KeyboardEvent, HTMLTextAreaElement>): void {
 	const field = event.delegateTarget;
 
 	if (event.key === 'Escape') {
@@ -55,13 +40,10 @@ function handler(event: delegate.Event<KeyboardEvent, HTMLTextAreaElement>): voi
 
 		if (lastOwnComment) {
 			select<HTMLButtonElement>('.js-comment-edit-button', lastOwnComment)!.click();
-			const closeCurrentField = field
+			field
 				.closest('form')!
-				.querySelector<HTMLButtonElement>('.js-hide-inline-comment-form');
-
-			if (closeCurrentField) {
-				closeCurrentField.click();
-			}
+				.querySelector<HTMLButtonElement>('.js-hide-inline-comment-form')
+				?.click();
 
 			// Move caret to end of field
 			requestAnimationFrame(() => {
@@ -72,10 +54,10 @@ function handler(event: delegate.Event<KeyboardEvent, HTMLTextAreaElement>): voi
 }
 
 function init(): void {
-	listenToCommentFields(handler);
+	onCommentFieldKeydown(eventHandler);
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Adds shortcuts to comment fields: `↑` to edit your previous comment; `esc` to blur field or cancel comment.',
 	screenshot: false,
@@ -84,6 +66,9 @@ features.add({
 		esc: 'Unfocuses comment field'
 	}
 }, {
+	include: [
+		pageDetect.hasRichTextEditor
+	],
 	waitForDomReady: false,
 	repeatOnAjax: false,
 	init

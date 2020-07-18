@@ -2,10 +2,10 @@ import React from 'dom-chef';
 import select from 'select-dom';
 import delegate from 'delegate-it';
 import FoldDownIcon from 'octicon/fold-down.svg';
-import * as textFieldEdit from 'text-field-edit';
 import * as pageDetect from 'github-url-detection';
+import * as textFieldEdit from 'text-field-edit';
 
-import features from '../libs/features';
+import features from '.';
 
 // Wraps string in at least 2 \n on each side,
 // as long as the field doesn't already have them.
@@ -26,17 +26,6 @@ function smartBlockWrap(content: string, field: HTMLTextAreaElement): string {
 	}
 
 	return newlinesToPrepend + content + newlinesToAppend;
-}
-
-function init(): void {
-	delegate(document, '.rgh-collapsible-content-btn', 'click', addContentToDetails);
-	for (const anchor of select.all('md-ref')) {
-		anchor.after(
-			<button type="button" className="toolbar-item tooltipped tooltipped-n rgh-collapsible-content-btn" aria-label="Add collapsible content">
-				<FoldDownIcon/>
-			</button>
-		);
-	}
 }
 
 function addContentToDetails(event: delegate.Event<MouseEvent, HTMLButtonElement>): void {
@@ -63,7 +52,18 @@ function addContentToDetails(event: delegate.Event<MouseEvent, HTMLButtonElement
 	);
 }
 
-features.add({
+function init(): void {
+	delegate(document, '.rgh-collapsible-content-btn', 'click', addContentToDetails);
+	for (const anchor of select.all('md-ref')) {
+		anchor.after(
+			<button type="button" className="toolbar-item tooltipped tooltipped-n rgh-collapsible-content-btn" aria-label="Add collapsible content">
+				<FoldDownIcon/>
+			</button>
+		);
+	}
+}
+
+void features.add({
 	id: __filebasename,
 	description: 'Adds a button to insert collapsible content (via `<details>`).',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/53678019-0c721280-3cf4-11e9-9c24-4d11a697f67c.png'

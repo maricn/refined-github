@@ -2,7 +2,7 @@ import React from 'dom-chef';
 import select from 'select-dom';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
+import features from '.';
 
 function init(): void | false {
 	const previewForm = select('.new-pr-form');
@@ -10,7 +10,7 @@ function init(): void | false {
 	// PRs can't be created from some comparison pages:
 	// Either base is a tag, not a branch; or there already exists a PR.
 	if (!previewForm) {
-		return;
+		return false;
 	}
 
 	const buttonBar = select('.timeline-comment > :last-child', previewForm)!;
@@ -50,7 +50,7 @@ function init(): void | false {
 	createPrButtonGroup.remove();
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Lets you create draft pull requests in one click.',
 	screenshot: 'https://user-images.githubusercontent.com/202916/67269317-cd791300-f4b6-11e9-89d1-392de7ef71e1.png'

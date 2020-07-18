@@ -9,7 +9,6 @@ Suggestions and pull requests are highly encouraged! Have a look at the [open is
 - [JSX](https://reactjs.org/docs/introducing-jsx.html) is used to create DOM elements.
 - All the [latest DOM APIs](https://github.com/WebReflection/dom4#features) and JavaScript features are available because the extension only has to work in the latest Chrome and Firefox. 🎉
 - Each JavaScript feature lives in its own file under [`source/features`](https://github.com/sindresorhus/refined-github/tree/master/source/features) and it's imported in [`source/refined-github.ts`](https://github.com/sindresorhus/refined-github/blob/master/source/refined-github.ts).
-- Some GitHub pages are loaded via AJAX/PJAX, so some features use the special `onAjaxedPages` loader (see it as a custom "on DOM ready").
 - See what a _feature_ [looks like](https://github.com/sindresorhus/refined-github/blob/master/source/features/user-profile-follower-badge.tsx).
 - Follow [the styleguide](https://github.com/sindresorhus/refined-github/blob/master/readme.md#L100) that appears in the Readme's source to write readable descriptions.
 - Refined GitHub tries to integrate as best as possible, so [GitHub's own styleguide](https://primer.style/css) might come in useful.
@@ -20,7 +19,7 @@ The simplest usage of `feature.add` is the following. This will be run instantly
 
 ```js
 import * as pageDetect from 'github-url-detection';
-import features from '../libs/features';
+import features from '.';
 
 function init () {
 	console.log('✨');
@@ -47,7 +46,8 @@ import React from 'dom-chef';
 import select from 'select-dom';
 import delegate from 'delegate-it';
 import * as pageDetect from 'github-url-detection';
-import features from '../libs/features';
+
+import features from '.';
 
 function append(event: delegate.Event<MouseEvent, HTMLButtonElement>): void {
 	event.delegateTarget.after('✨', <div className="rgh-jsx-element">Button clicked!</div>);
@@ -89,6 +89,9 @@ features.add({
 });
 ```
 
+## Requirements
+
+[Node.js](https://nodejs.org/en/download/) version 13 or later is required.
 
 ## Workflow
 
@@ -103,37 +106,21 @@ npm install
 When working on the extension or checking out branches, use this to have it constantly build your changes:
 
 ```sh
-npm run watch # Listen for file changes and automatically rebuild
+npm run watch # Listen to file changes and automatically rebuild
 ```
 
-Then load or reload it into the browser to see the changes (this does not happen automatically).
+Then load or reload it into the browser to see the changes.
 
 ## Loading into the browser
 
-Once built, load it in the browser of your choice:
+Once built, load it in the browser of your choice.
 
-<table>
-	<tr>
-		<th>Chrome</th>
-		<th>Firefox</th>
-	</tr>
-	<tr>
-		<td width="50%" valign="top">
-			<ol>
-				<li>Open <code>chrome://extensions</code>;
-				<li>Check the <strong>Developer mode</strong> checkbox;
-				<li>Click on the <strong>Load unpacked extension</strong> button;
-				<li>Select the folder <code>refined-github/distribution</code>.
-			</ol>
-		</td>
-		<td width="50%" valign="top">
-			<ol>
-				<li>Open <code>about:debugging#addons</code>;
-				<li>Click on the <strong>Load Temporary Add-on</strong> button;
-				<li>Select the file <code>refined-github/distribution/manifest.json</code>.
-			</ol>
-			Or you can use run this command to have Firefox automatically load and reload it through <a href="https://developer.mozilla.org/en-US/Add-ons/WebExtensions/web-ext_command_reference#web-ext_run"><code>web-ext run</code></a>:</p>
-			<pre>npm run watch:firefox</pre>
-		</td>
-	</tr>
-</table>
+```sh
+npm run start # Open extension in Chrome
+```
+
+```sh
+npm run start:firefox # Open extension in Firefox
+```
+
+Or you can [load it manually in Chrome](https://www.smashingmagazine.com/2017/04/browser-extension-edge-chrome-firefox-opera-brave-vivaldi/#google-chrome-opera-vivaldi) or [Firefox](https://www.smashingmagazine.com/2017/04/browser-extension-edge-chrome-firefox-opera-brave-vivaldi/#mozilla-firefox).

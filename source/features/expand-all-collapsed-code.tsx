@@ -2,7 +2,7 @@ import select from 'select-dom';
 import delegate from 'delegate-it';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
+import features from '.';
 
 const expanderSelector = '.js-expand.directional-expander';
 
@@ -12,6 +12,7 @@ const expandingCodeObserver = new MutationObserver(([mutation]) => {
 	if (expandButton) {
 		expandButton.click();
 	} else {
+		document.body.removeEventListener('keyup', disconnectOnEscape);
 		expandingCodeObserver.disconnect();
 	}
 });
@@ -40,7 +41,7 @@ function init(): void {
 	delegate(document, expanderSelector, 'click', handleAltClick);
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Expands the entire file when you alt-click on any "Expand code" button in diffs.',
 	screenshot: 'https://user-images.githubusercontent.com/44227187/64923605-d0138900-d7e3-11e9-9dc2-461aba81c1cb.gif'

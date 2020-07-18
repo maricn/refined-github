@@ -3,9 +3,9 @@ import React from 'dom-chef';
 import select from 'select-dom';
 import * as pageDetect from 'github-url-detection';
 
-import * as api from '../libs/api';
-import features from '../libs/features';
-import {getUsername, compareNames} from '../libs/utils';
+import features from '.';
+import * as api from '../github-helpers/api';
+import {getUsername, compareNames} from '../github-helpers';
 
 async function init(): Promise<false | void> {
 	const usernameElements = select.all([
@@ -24,7 +24,7 @@ async function init(): Promise<false | void> {
 
 		// Drop 'commented' label to shorten the copy
 		const commentedNode = element.parentNode!.nextSibling;
-		if (commentedNode && commentedNode.textContent!.includes('commented')) {
+		if (commentedNode?.textContent!.includes('commented')) {
 			commentedNode.remove();
 		}
 	}
@@ -44,7 +44,7 @@ async function init(): Promise<false | void> {
 		const userKey = api.escapeKey(username);
 
 		// For the currently logged in user, `names[userKey]` would not be present.
-		if (names[userKey] && names[userKey].name) {
+		if (names[userKey]?.name) {
 			// If it's a regular comment author, add it outside <strong>
 			// otherwise it's something like "User added some commits"
 			if (compareNames(username, names[userKey].name)) {
@@ -65,7 +65,7 @@ async function init(): Promise<false | void> {
 	}
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Adds the real name of users by their usernames.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/62075835-5f82ce00-b270-11e9-91eb-4680b70cb3cb.png'

@@ -5,8 +5,8 @@ import CheckIcon from 'octicon/check.svg';
 import ArrowDownIcon from 'octicon/arrow-down.svg';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
-import {looseParseInt} from '../libs/utils';
+import features from '.';
+import looseParseInt from '../helpers/loose-parse-int';
 
 // `.js-timeline-item` gets the nearest comment excluding the very first comment (OP post)
 const commentSelector = '.js-timeline-item';
@@ -20,16 +20,6 @@ const positiveReactionsSelector = `
 const negativeReactionsSelector = `
 	${commentSelector} [aria-label*="reacted with thumbs down"]
 `;
-
-function init(): false | void {
-	const bestComment = getBestComment();
-	if (!bestComment) {
-		return false;
-	}
-
-	highlightBestComment(bestComment);
-	linkBestComment(bestComment);
-}
 
 function getBestComment(): HTMLElement | null {
 	let highest;
@@ -91,6 +81,9 @@ function linkBestComment(bestComment: HTMLElement): void {
 		link.removeAttribute('data-hovercard-url');
 		link.href = hash;
 
+		// Remove the check icon from the preview #3338
+		select('.octicon-check.text-green', avatar)!.remove();
+
 		// We don't copy the exact timeline item structure, so we need to align the avatar with the other avatars in the timeline.
 		// TODO: update DOM to match other comments, instead of applying this CSS
 		avatar.style.left = '-55px';
@@ -127,10 +120,25 @@ function getPositiveReactions(reactionBox?: HTMLElement): HTMLElement[] {
 }
 
 function getCount(reactions: HTMLElement[]): number {
-	return reactions.reduce((count, reaction) => count + looseParseInt(reaction.textContent!), 0);
+	let count = 0;
+	for (const reaction of reactions) {
+		count += looseParseInt(reaction.textContent!);
+	}
+
+	return count;
 }
 
-features.add({
+function init(): false | void {
+	const bestComment = getBestComment();
+	if (!bestComment) {
+		return false;
+	}
+
+	highlightBestComment(bestComment);
+	linkBestComment(bestComment);
+}
+
+void features.add({
 	id: __filebasename,
 	description: 'Highlights the most useful comment in issues.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/58757449-5b238880-853f-11e9-9526-e86c41a32f00.png'

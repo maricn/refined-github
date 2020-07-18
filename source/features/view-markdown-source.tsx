@@ -6,8 +6,8 @@ import CodeIcon from 'octicon/code.svg';
 import FileIcon from 'octicon/file.svg';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
-import fetchDom from '../libs/fetch-dom';
+import features from '.';
+import fetchDom from '../helpers/fetch-dom';
 
 const buttonBodyMap = new WeakMap<Element, Element | Promise<Element>>();
 
@@ -74,20 +74,20 @@ async function showRendered(): Promise<void> {
 	dispatchEvent(sourceButton, 'rgh:view-markdown-rendered');
 }
 
-async function init(): Promise<false | void> {
-	if (!select.exists('.blob .markdown-body')) {
-		return false;
-	}
-
+async function init(): Promise<void> {
 	delegate(document, '.rgh-md-source:not(.selected)', 'click', showSource);
 	delegate(document, '.rgh-md-rendered:not(.selected)', 'click', showRendered);
 
-	select('.repository-content .Box-header .d-flex')!.prepend(
+	const fileButtons =
+		select('.repository-content .Box-header.flex-md-items-center .d-flex') ??
+		// Pre "Repository refresh" layout
+		select('.repository-content .Box-header .d-flex')!;
+	fileButtons.prepend(
 		<div className="BtnGroup">
-			<button className="btn btn-sm BtnGroup-item tooltipped tooltipped tooltipped-n rgh-md-source" type="button" aria-label="Display the source blob">
+			<button className="btn btn-sm BtnGroup-item tooltipped tooltipped tooltipped-nw rgh-md-source" type="button" aria-label="Display the source blob">
 				<CodeIcon/>
 			</button>
-			<button className="btn btn-sm BtnGroup-item tooltipped tooltipped-n rgh-md-rendered selected" type="button" aria-label="Display the rendered blob">
+			<button className="btn btn-sm BtnGroup-item tooltipped tooltipped-nw rgh-md-rendered selected" type="button" aria-label="Display the rendered blob">
 				<FileIcon/>
 			</button>
 		</div>
@@ -105,13 +105,16 @@ async function init(): Promise<false | void> {
 	}
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Adds a button to view the source of Markdown files.',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/54814836-7bc39c80-4ccb-11e9-8996-9ecf4f6036cb.png'
 }, {
 	include: [
 		pageDetect.isSingleFile
+	],
+	exclude: [
+		() => !select.exists('.blob .markdown-body')
 	],
 	init
 });

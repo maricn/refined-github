@@ -5,10 +5,10 @@ import cache from 'webext-storage-cache';
 import select from 'select-dom';
 import ClockIcon from 'octicon/clock.svg';
 
-import * as api from '../libs/api';
-import features from '../libs/features';
-import {getUsername} from '../libs/utils';
-import observeElement from '../libs/simplified-element-observer';
+import features from '.';
+import * as api from '../github-helpers/api';
+import {getUsername} from '../github-helpers';
+import observeElement from '../helpers/simplified-element-observer';
 
 interface Commit {
 	url: string;
@@ -132,7 +132,7 @@ function init(): void {
 	});
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Shows the user local time in their hovercard (based on their last commit).',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/69863648-ef449180-12cf-11ea-8f36-7c92fc487f31.gif'

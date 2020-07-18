@@ -6,12 +6,17 @@
 }
 
 /* Ensure all icons are 16px wide for alignment */
+/* TODO: drop once GHE starts using the new icons */
 .rgh-reponav-more svg {
 	width: 16px;
 }
 
-/* Optically align Dependencies dropdown link */
-.rgh-reponav-more .octicon-package {
-	margin-right: 2px;
-	margin-left: -2px;
+/* Always show the overflow menu button */
+.rgh-has-more-dropdown .js-responsive-underlinenav-overflow {
+	visibility: visible !important;
+}
+
+/* Only show the divider if there are other items above it */
+.js-responsive-underlinenav-overflow [hidden] + .dropdown-divider {
+	display: none;
 }

@@ -4,7 +4,16 @@ import select from 'select-dom';
 import delegate from 'delegate-it';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
+import features from '.';
+
+function unhide(event: delegate.Event<MouseEvent, HTMLButtonElement>): void {
+	for (const comment of select.all('.rgh-hidden-comment')) {
+		comment.hidden = false;
+	}
+
+	select('.rgh-hidden-comment')!.scrollIntoView();
+	event.delegateTarget.parentElement!.remove();
+}
 
 function init(): void {
 	let uselessCount = 0;
@@ -50,16 +59,7 @@ function init(): void {
 	}
 }
 
-function unhide(event: delegate.Event<MouseEvent, HTMLButtonElement>): void {
-	for (const comment of select.all('.rgh-hidden-comment')) {
-		comment.hidden = false;
-	}
-
-	select('.rgh-hidden-comment')!.scrollIntoView();
-	event.delegateTarget.parentElement!.remove();
-}
-
-features.add({
+void void features.add({
 	id: __filebasename,
 	description: 'Hides reaction comments ("+1", "👍", …).',
 	screenshot: 'https://user-images.githubusercontent.com/1402241/45543717-d45f3c00-b847-11e8-84a5-8c439d0ad1a5.png'

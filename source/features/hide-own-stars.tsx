@@ -1,8 +1,8 @@
 import select from 'select-dom';
 import * as pageDetect from 'github-url-detection';
 
-import features from '../libs/features';
-import {getUsername} from '../libs/utils';
+import features from '.';
+import {getUsername} from '../github-helpers';
 
 async function init(): Promise<void> {
 	for (const item of select.all('#dashboard .news .watch_started, #dashboard .news .fork')) {
@@ -12,7 +12,7 @@ async function init(): Promise<void> {
 	}
 }
 
-features.add({
+void features.add({
 	id: __filebasename,
 	description: 'Hides "starred" events for your own repos on the newsfeed.',
 	screenshot: false
