@@ -59,10 +59,8 @@ import './features/linkify-branch-references';
 import './features/batch-open-conversations';
 import './features/hide-useless-comments';
 import './features/navigate-pages-with-arrow-keys';
-import './features/global-discussion-list-filters';
 import './features/conversation-links-on-repo-lists';
 import './features/conversation-filters';
-import './features/open-and-closed-issues-sort-by-update-time'; // Must be after global-discussion-list-filters and filter-comments-by-you and discussion-links-on-repo-lists
 import './features/sort-conversations-by-update-time'; // Must be after global-conversation-list-filters and conversation-filters and conversation-links-on-repo-lists
 import './features/pinned-issues-update-time';
 import './features/latest-tag-button';
