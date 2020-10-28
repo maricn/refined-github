@@ -1,4 +1,5 @@
 import React from 'dom-chef';
+import onetime from 'onetime';
 import elementReady from 'element-ready';
 import * as pageDetect from 'github-url-detection';
 
@@ -15,18 +16,13 @@ async function init(): Promise<false | void> {
 	);
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Adds a `Trending` link to the global navbar and a keyboard shortcut: `g` ` t`',
-	screenshot: false,
+void features.add(__filebasename, {
 	shortcuts: {
 		'g t': 'Go to Trending'
-	}
-}, {
+	},
 	exclude: [
 		pageDetect.isGist
 	],
-	waitForDomReady: false,
-	repeatOnAjax: false,
-	init
+	awaitDomReady: false,
+	init: onetime(init)
 });

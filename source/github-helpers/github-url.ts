@@ -20,11 +20,11 @@ export default class GitHubURL {
 		this.pathname = this.internalUrl.pathname;
 	}
 
-	toString() {
+	toString(): string {
 		return this.href;
 	}
 
-	toJSON() {
+	toJSON(): string {
 		return this.href;
 	}
 
@@ -35,6 +35,7 @@ export default class GitHubURL {
 
 	private disambiguateReference(ambiguousReference: string[]): {branch: string; filePath: string} {
 		const branch = ambiguousReference[0];
+		// History pages might use search parameters
 		const filePathFromSearch = this.searchParams.getAll('path[]').join('/');
 		if (filePathFromSearch) {
 			this.searchParams.delete('path[]');
@@ -44,6 +45,10 @@ export default class GitHubURL {
 		const filePath = ambiguousReference.slice(1).join('/');
 
 		const currentBranch = getCurrentBranch();
+		if (!currentBranch) {
+			throw new Error('GitHubURL can only be used on pages with a branch/reference.');
+		}
+
 		const currentBranchSections = currentBranch.split('/');
 		if (
 			ambiguousReference.length === 1 || // Ref has no slashes
@@ -66,23 +71,23 @@ export default class GitHubURL {
 		};
 	}
 
-	get pathname() {
-		return `/${this.user}/${this.repository}/${this.route}/${this.branch}/${this.filePath}`.replace(/\/+$/, '');
+	get pathname(): string {
+		return `/${this.user}/${this.repository}/${this.route}/${this.branch}/${this.filePath}`.replace(/((undefined)?\/)+$/g, '');
 	}
 
-	set pathname(pathname) {
+	set pathname(pathname: string) {
 		const [user, repository, route, ...ambiguousReference] = pathname.replace(/^\/|\/$/g, '').split('/');
 		const {branch, filePath} = this.disambiguateReference(ambiguousReference);
 		this.assign({user, repository, route, branch, filePath});
 	}
 
-	get href() {
+	get href(): string {
 		// Update the actual underlying URL
 		this.internalUrl.pathname = this.pathname;
 		return this.internalUrl.href;
 	}
 
-	set href(href) {
+	set href(href: string) {
 		this.internalUrl.href = href;
 	}
 
@@ -92,7 +97,7 @@ export default class GitHubURL {
 		return this.internalUrl.hash;
 	}
 
-	set hash(hash) {
+	set hash(hash: string) {
 		this.internalUrl.hash = hash;
 	}
 
@@ -100,7 +105,7 @@ export default class GitHubURL {
 		return this.internalUrl.search;
 	}
 
-	set search(search) {
+	set search(search: string) {
 		this.internalUrl.search = search;
 	}
 

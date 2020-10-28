@@ -11,11 +11,11 @@ import {getUsername, isFirefox} from '../github-helpers';
 const arbitraryAvatarLimit = 36;
 const approximateHeaderLength = 3; // Each button header takes about as much as 3 avatars
 
-type Participant = {
+interface Participant {
 	container: HTMLElement;
 	username: string;
 	imageUrl: string;
-};
+}
 
 function getParticipants(container: HTMLElement): Participant[] {
 	const currentUser = getUsername();
@@ -84,18 +84,14 @@ const viewportObserver = new IntersectionObserver(changes => {
 	rootMargin: '500px'
 });
 
-async function init(): Promise<void> {
+function init(): void {
 	for (const commentReactions of select.all('.has-reactions .comment-reactions-options:not(.rgh-reactions)')) {
 		commentReactions.classList.add('rgh-reactions');
 		viewportObserver.observe(commentReactions);
 	}
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Adds reaction avatars showing *who* reacted to a comment',
-	screenshot: 'https://user-images.githubusercontent.com/1402241/34438653-f66535a4-ecda-11e7-9406-2e1258050cfa.png'
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.hasComments
 	],

@@ -7,15 +7,13 @@ import * as pageDetect from 'github-url-detection';
 import features from '.';
 import * as api from '../github-helpers/api';
 import {getCommitHash} from './mark-merge-commits-in-list';
-import {getRepoURL, getRepoGQL} from '../github-helpers';
+import {buildRepoURL, getRepoURL, getRepoGQL} from '../github-helpers';
 
-interface CommitTags {
-	[name: string]: string[];
-}
+type CommitTags = Record<string, string[]>;
 
-type BaseTarget = {
+interface BaseTarget {
 	commitResourcePath: string;
-};
+}
 
 type TagTarget = {
 	tagger: {
@@ -120,9 +118,12 @@ async function getTags(lastCommit: string, after?: string): Promise<CommitTags> 
 async function init(): Promise<void | false> {
 	const cacheKey = `tags:${getRepoURL()}`;
 
-	const commitsOnPage = select.all('li.commit');
+	const commitsOnPage = select.all([
+		'li.commit', // Pre "Repository refresh" layout
+		'.js-commits-list-item'
+	]);
 	const lastCommitOnPage = getCommitHash(commitsOnPage[commitsOnPage.length - 1]);
-	let cached = await cache.get<{[commit: string]: string[]}>(cacheKey) ?? {};
+	let cached = await cache.get<Record<string, string[]>>(cacheKey) ?? {};
 	const commitsWithNoTags = [];
 	for (const commit of commitsOnPage) {
 		const targetCommit = getCommitHash(commit);
@@ -137,12 +138,15 @@ async function init(): Promise<void | false> {
 			// There was no tags for this commit, save that info to the cache
 			commitsWithNoTags.push(targetCommit);
 		} else if (targetTags.length > 0) {
-			select('.commit-meta', commit)!.append(
+			select([
+				'.commit-meta', // Pre "Repository refresh" layout
+				'.flex-auto .d-flex.mt-1'
+			], commit)!.append(
 				<div className="ml-2">
 					<TagIcon/>
 					<span className="ml-1">{targetTags.map((tags, i) => (
 						<>
-							<a href={`/${getRepoURL()}/releases/tag/${tags}`}>{tags}</a>
+							<a href={buildRepoURL('releases/tag', tags)}>{tags}</a>
 							{(i + 1) === targetTags.length ? '' : ', '}
 						</>
 					))}
@@ -158,14 +162,10 @@ async function init(): Promise<void | false> {
 		}
 	}
 
-	await cache.set(cacheKey, cached, 1);
+	await cache.set(cacheKey, cached, {days: 1});
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Display the corresponding tags next to commits',
-	screenshot: 'https://user-images.githubusercontent.com/14323370/66400400-64ba7280-e9af-11e9-8d6c-07b35afde91f.png'
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.isRepoCommitList
 	],

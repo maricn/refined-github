@@ -6,15 +6,15 @@ import tinyVersionCompare from 'tiny-version-compare';
 
 import features from '.';
 import fetchDom from '../helpers/fetch-dom';
-import {getRepoPath, getRepoURL, parseTag} from '../github-helpers';
+import {getRepoPath, buildRepoURL, getRepoURL, parseTag} from '../github-helpers';
 
-type TagDetails = {
+interface TagDetails {
 	element: HTMLElement;
 	commit: string;
 	tag: string;
 	version: string;
 	namespace: string;
-};
+}
 
 async function getNextPage(): Promise<DocumentFragment> {
 	const nextPageLink = select<HTMLAnchorElement>('.pagination a:last-child');
@@ -22,7 +22,7 @@ async function getNextPage(): Promise<DocumentFragment> {
 		return fetchDom(nextPageLink.href);
 	}
 
-	if (pageDetect.isSingleTagPage()) {
+	if (pageDetect.isSingleTag()) {
 		const [, tag = ''] = getRepoPath()!.split('releases/tag/', 2); // Already URL-encoded
 		return fetchDom(`/${getRepoURL()}/tags?after=${tag}`);
 	}
@@ -72,7 +72,7 @@ const getPreviousTag = (current: number, allTags: TagDetails[]): string | undefi
 async function init(): Promise<void> {
 	const tagsSelector = [
 		// https://github.com/facebook/react/releases (release in releases list)
-		'.release',
+		'.release:not(.label-draft)',
 
 		// https://github.com/facebook/react/releases?after=v16.7.0 (tags in releases list)
 		'.release-main-section .commit',
@@ -97,7 +97,7 @@ async function init(): Promise<void> {
 						<a
 							className="muted-link tooltipped tooltipped-n"
 							aria-label={'See changes since ' + decodeURIComponent(previousTag)}
-							href={`/${getRepoURL()}/compare/${previousTag}...${allTags[index].tag}`}
+							href={buildRepoURL(`compare/${previousTag}...${allTags[index].tag}`)}
 						>
 							<DiffIcon/> Changelog
 						</a>
@@ -112,11 +112,7 @@ async function init(): Promise<void> {
 	}
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Adds a link to an automatic changelog for each tag/release.',
-	screenshot: 'https://user-images.githubusercontent.com/1402241/57081611-ad4a7180-6d27-11e9-9cb6-c54ec1ac18bb.png'
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.isReleasesOrTags
 	],

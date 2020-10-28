@@ -1,3 +1,4 @@
+import onetime from 'onetime';
 import * as pageDetect from 'github-url-detection';
 
 import features from '.';
@@ -22,15 +23,10 @@ function init(): void {
 	document.body.addEventListener('keyup', listener);
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Adds a keyboard shortcut to deselect the current line: `esc`.',
-	screenshot: false
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.hasCode
 	],
-	waitForDomReady: false,
-	repeatOnAjax: false,
-	init
+	awaitDomReady: false,
+	init: onetime(init)
 });

@@ -20,8 +20,8 @@ const countBugs = cache.function(async (): Promise<number> => {
 
 	return search.issueCount;
 }, {
-	maxAge: 1 / 24 / 2, // Stale after half an hour
-	staleWhileRevalidate: 4,
+	maxAge: {minutes: 30},
+	staleWhileRevalidate: {days: 4},
 	cacheKey: (): string => __filebasename + ':' + getRepoURL()
 });
 
@@ -65,7 +65,7 @@ async function init(): Promise<void | false> {
 	if (bugsTabTitle) {
 		bugsTabTitle.dataset.content = 'Bugs';
 		bugsTabTitle.textContent = 'Bugs';
-		select('.octicon', bugsTab)!.replaceWith(<BugIcon className="UnderlineNav-octicon"/>);
+		select('.octicon', bugsTab)!.replaceWith(<BugIcon className="UnderlineNav-octicon d-none d-sm-inline"/>);
 
 		// Un-select one of the tabs if necessary
 		const selectedTabLink = !isBugsPage || pageDetect.isPRList() ? bugsLink : select('.selected', issuesTab);
@@ -84,6 +84,7 @@ async function init(): Promise<void | false> {
 	// Set temporary counter
 	const bugsCounter = select('.Counter', bugsTab)!;
 	bugsCounter.textContent = '0';
+	bugsCounter.title = '';
 
 	// Update Bugs’ link
 	new SearchQuery(bugsLink).add('label:bug');
@@ -93,20 +94,16 @@ async function init(): Promise<void | false> {
 	// Update bugs count
 	try {
 		bugsCounter.textContent = numberFormatter.format(await countPromise);
-	} catch (error) {
+	} catch (error: unknown) {
 		bugsCounter.remove();
-		throw error;
+		features.error(__filebasename, error);
 	}
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Adds a "Bugs" tab to repos, if there are any open issues with the "bug" label.',
-	screenshot: 'https://user-images.githubusercontent.com/1402241/73720910-a688d900-4755-11ea-9c8d-70e5ddb3bfe5.png'
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.isRepo
 	],
-	waitForDomReady: false,
+	awaitDomReady: false,
 	init
 });

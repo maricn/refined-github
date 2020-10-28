@@ -6,7 +6,8 @@ next to the name of the feature that caused them.
 Usage:
 
 import * as api from '../github-helpers/api';
-const user = await api.v3(`users/${username}`);
+const user = await api.v3(`/users/${username}`);
+const repositoryCommits = await api.v3('commits'); // Without a leading `/`, this is equivalent to `/repo/$current-repository/commits`
 const data = await api.v4('{user(login: "user") {name}}');
 
 Returns:
@@ -29,10 +30,11 @@ import * as pageDetect from 'github-url-detection';
 import {JsonObject, AsyncReturnType} from 'type-fest';
 
 import optionsStorage from '../options-storage';
+import {getRepoURL} from '.';
 
-type JsonError = {
+interface JsonError {
 	message: string;
-};
+}
 
 interface GraphQLResponse {
 	message?: string;
@@ -55,6 +57,14 @@ export class RefinedGitHubAPIError extends Error {
 }
 
 const settings = optionsStorage.getAll();
+export async function expectToken(): Promise<string> {
+	const {personalToken} = await settings;
+	if (!personalToken) {
+		throw new Error('Personal token required for this feature');
+	}
+
+	return personalToken;
+}
 
 const api3 = pageDetect.isEnterprise() ?
 	`${location.origin}/api/v3/` :
@@ -66,7 +76,7 @@ const api4 = pageDetect.isEnterprise() ?
 
 interface GHRestApiOptions {
 	ignoreHTTPStatus?: boolean;
-	method?: 'GET' | 'POST' | 'PUT';
+	method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 	body?: JsonObject;
 	headers?: HeadersInit;
 	json?: boolean;
@@ -94,8 +104,8 @@ export const v3 = mem(async (
 	const {ignoreHTTPStatus, method, body, headers, json} = {...v3defaults, ...options};
 	const {personalToken} = await settings;
 
-	if (query.startsWith('/')) {
-		throw new TypeError('The query parameter must not start with a slash.');
+	if (!query.startsWith('https')) {
+		query = query.startsWith('/') ? query.slice(1) : 'repos/' + getRepoURL() + '/' + query;
 	}
 
 	const url = new URL(query, api3);
@@ -145,14 +155,10 @@ export const v4 = mem(async (
 	query: string,
 	options: GHGraphQLApiOptions = v4defaults
 ): Promise<AnyObject> => {
-	const {personalToken} = await settings;
+	const personalToken = await expectToken();
 
 	if (/^(query )?{/.test(query.trimStart())) {
 		throw new TypeError('`query` should only be what’s inside \'query {...}\', like \'user(login: "foo") { name }\', but is \n' + query);
-	}
-
-	if (!personalToken) {
-		throw new Error('Personal token required for this feature');
 	}
 
 	const response = await fetch(api4, {

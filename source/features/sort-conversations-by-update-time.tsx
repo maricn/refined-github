@@ -1,4 +1,5 @@
 import select from 'select-dom';
+import onetime from 'onetime';
 import elementReady from 'element-ready';
 import * as pageDetect from 'github-url-detection';
 
@@ -29,17 +30,12 @@ function init(): void {
 	}
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Changes the default sort order of conversations to `Recently updated`.',
-	screenshot: false
-}, {
+void features.add(__filebasename, {
 	init
 }, {
 	include: [
 		pageDetect.isGlobalConversationList
 	],
-	waitForDomReady: false,
-	repeatOnAjax: false,
-	init: cleanBar
+	awaitDomReady: false,
+	init: onetime(cleanBar)
 });

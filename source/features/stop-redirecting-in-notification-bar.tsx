@@ -1,3 +1,4 @@
+import onetime from 'onetime';
 import delegate from 'delegate-it';
 
 import features from '.';
@@ -14,20 +15,15 @@ function handleClick(event: delegate.Event<MouseEvent, HTMLButtonElement>): void
 	event.delegateTarget.form!.toggleAttribute('data-redirect-to-inbox-on-submit', !redirectDisabled);
 }
 
-async function init(): Promise<void> {
+function init(): void {
 	sessionStorage.rghIsNewTab = history.length === 1;
 	delegate(document, '.notification-shelf .js-notification-action button', 'click', handleClick);
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Stops redirecting to notification inbox from notification bar actions while holding `Alt`.',
-	screenshot: 'https://user-images.githubusercontent.com/202916/80318782-c38cef80-880c-11ea-9226-72c585f42a51.png'
-}, {
+void features.add(__filebasename, {
 	include: [
 		hasNotificationBar
 	],
-	waitForDomReady: false,
-	repeatOnAjax: false,
-	init
+	awaitDomReady: false,
+	init: onetime(init)
 });

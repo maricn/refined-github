@@ -1,4 +1,6 @@
+import React from 'dom-chef';
 import select from 'select-dom';
+import onetime from 'onetime';
 import delegate from 'delegate-it';
 import * as pageDetect from 'github-url-detection';
 
@@ -39,7 +41,11 @@ function eventHandler(event: delegate.Event<KeyboardEvent, HTMLTextAreaElement>)
 			});
 
 		if (lastOwnComment) {
-			select<HTMLButtonElement>('.js-comment-edit-button', lastOwnComment)!.click();
+			// Make the comment editable (the native edit button might not be available yet)
+			const editButton = <button hidden type="button" className="js-comment-edit-button"/>;
+			lastOwnComment.append(editButton);
+			editButton.click();
+			editButton.remove();
 			field
 				.closest('form')!
 				.querySelector<HTMLButtonElement>('.js-hide-inline-comment-form')
@@ -57,19 +63,14 @@ function init(): void {
 	onCommentFieldKeydown(eventHandler);
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Adds shortcuts to comment fields: `↑` to edit your previous comment; `esc` to blur field or cancel comment.',
-	screenshot: false,
+void features.add(__filebasename, {
 	shortcuts: {
 		'↑': 'Edit your last comment',
 		esc: 'Unfocuses comment field'
-	}
-}, {
+	},
 	include: [
 		pageDetect.hasRichTextEditor
 	],
-	waitForDomReady: false,
-	repeatOnAjax: false,
-	init
+	awaitDomReady: false,
+	init: onetime(init)
 });

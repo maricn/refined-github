@@ -21,7 +21,7 @@ function init(): void {
 		);
 	} else {
 		// "Repository refresh" layout
-		select('.file-navigation > .d-flex')!.append(
+		select('.file-navigation > .d-flex:last-child')!.append(
 			<a
 				className="btn ml-2"
 				href={downloadUrl.href}
@@ -33,11 +33,7 @@ function init(): void {
 	}
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Adds a button to a download button entire folders, via https://download-directory.github.io',
-	screenshot: 'https://user-images.githubusercontent.com/1402241/35044451-fd3e2326-fbc2-11e7-82e1-61ec7bee612b.png'
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.isRepoTree
 	],

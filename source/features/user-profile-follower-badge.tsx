@@ -16,7 +16,6 @@ const doesUserFollow = cache.function(async (userA: string, userB: string): Prom
 
 	return httpStatus === 204;
 }, {
-	maxAge: 3,
 	cacheKey: ([userA, userB]) => `user-follows:${userA}:${userB}`
 });
 
@@ -34,11 +33,7 @@ async function init(): Promise<void> {
 	}
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Tells you whether the user follows you.',
-	screenshot: 'https://user-images.githubusercontent.com/3723666/45190460-03ecc380-b20c-11e8-832b-839959ee2c99.gif'
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.isUserProfile
 	],

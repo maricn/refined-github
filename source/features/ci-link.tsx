@@ -1,16 +1,18 @@
 import './ci-link.css';
-import oneTime from 'onetime';
+import select from 'select-dom';
+import onetime from 'onetime';
 import * as pageDetect from 'github-url-detection';
 
 import features from '.';
 import fetchDom from '../helpers/fetch-dom';
 import {getRepoURL} from '../github-helpers';
-import {appendBefore} from '../helpers/dom-utils';
 
 // Look for the CI icon in the latest 2 days of commits #2990
-const getIcon = oneTime(fetchDom.bind(null,
-	`/${getRepoURL()}/commits`,
-	'.commit-group:nth-of-type(-n+2) .commit-build-statuses'
+const getIcon = onetime(fetchDom.bind(null,
+	`/${getRepoURL()}/commits`, [
+		'.commit-group:nth-of-type(-n+2) .commit-build-statuses', // Pre "Repository refresh" layout
+		'.TimelineItem--condensed:nth-of-type(-n+2) .commit-build-statuses'
+	].join()
 ));
 
 async function init(): Promise<false | void> {
@@ -20,22 +22,21 @@ async function init(): Promise<false | void> {
 	}
 
 	icon.classList.add('rgh-ci-link');
-	if (oneTime.callCount(getIcon) > 1) {
+	if (onetime.callCount(getIcon) > 1) {
 		icon.style.animation = 'none';
 	}
 
 	// Append to title (aware of forks and private repos)
-	appendBefore('.pagehead h1', '.fork-flag', icon);
+	select('[itemprop="name"]')!.parentElement!.append(icon);
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Add build status and link to CI after the repo’s title.',
-	screenshot: 'https://user-images.githubusercontent.com/1402241/32562120-d65166e4-c4e8-11e7-90fb-cbaf36e2709f.png'
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.isRepo
 	],
-	waitForDomReady: false,
+	exclude: [
+		pageDetect.isEmptyRepo
+	],
+	awaitDomReady: false,
 	init
 });

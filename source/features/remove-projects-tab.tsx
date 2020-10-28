@@ -1,15 +1,16 @@
 import React from 'dom-chef';
 import select from 'select-dom';
+import onetime from 'onetime';
 import elementReady from 'element-ready';
 import * as pageDetect from 'github-url-detection';
 
 import features from '.';
 import {observeOneMutation} from '../helpers/simplified-element-observer';
 
-function getProjectsTab() {
+async function getProjectsTab(): Promise<HTMLElement | undefined> {
 	return elementReady([
 		'[data-hotkey="g b"]', // In organizations and repos
-		'.user-profile-nav [href$="?tab=projects"]' // In user profiles
+		'[aria-label="User profile"] [href$="?tab=projects"]' // In user profiles
 	].join());
 }
 
@@ -60,11 +61,7 @@ async function removeProjectsTab(): Promise<void | false> {
 	projectsTab.remove();
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Hides the `Projects` tab from repositories and profiles when it’s empty. New projects can still be created via the `Create new…` menu.',
-	screenshot: 'https://user-images.githubusercontent.com/1402241/34909214-18b6fb2e-f8cf-11e7-8556-bed748596d3b.png'
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.isRepo,
 		pageDetect.isUserProfile,
@@ -75,14 +72,13 @@ void features.add({
 		pageDetect.canUserEditRepo,
 		pageDetect.canUserEditOrganization
 	],
-	waitForDomReady: false,
+	awaitDomReady: false,
 	init: removeProjectsTab
 }, {
 	include: [
 		pageDetect.isRepo,
 		pageDetect.isOrganizationProfile
 	],
-	repeatOnAjax: false,
-	waitForDomReady: false,
-	init: addNewProjectLink
+	awaitDomReady: false,
+	init: onetime(addNewProjectLink)
 });

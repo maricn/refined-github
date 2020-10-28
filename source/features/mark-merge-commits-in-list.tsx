@@ -36,25 +36,27 @@ const filterMergeCommits = async (commits: string[]): Promise<string[]> => {
 // eslint-disable-next-line import/prefer-default-export
 export function getCommitHash(commit: HTMLElement): string {
 	return 	commit.dataset.channel!.split(':')[3] ?? // Pre "Repository refresh" layout
-	commit.querySelector<HTMLAnchorElement>('a[href]')!.href.split('/').pop()!;
+	commit.querySelector<HTMLAnchorElement>('a[href]')!.pathname.split('/').pop()!;
 }
 
 async function init(): Promise<void> {
-	const pageCommits = select.all('li.commit');
+	const pageCommits = select.all([
+		'li.commit', // Pre "Repository refresh" layout
+		'.js-commits-list-item'
+	]);
 	const mergeCommits = await filterMergeCommits(pageCommits.map(getCommitHash));
 	for (const commit of pageCommits) {
 		if (mergeCommits.includes(getCommitHash(commit))) {
 			commit.classList.add('rgh-merge-commit');
-			select('.commit-title', commit)!.prepend(<PullRequestIcon/>);
+			select([
+				'.commit-title', // Pre "Repository refresh" layout
+				'div > p'
+			], commit)!.prepend(<PullRequestIcon/>);
 		}
 	}
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Marks merge commits in commit lists.',
-	screenshot: 'https://user-images.githubusercontent.com/16872793/75561016-457eb900-5a14-11ea-95e1-a89e81ee7390.png'
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.isCommitList
 	],

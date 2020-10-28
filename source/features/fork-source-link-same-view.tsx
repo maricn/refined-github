@@ -16,18 +16,15 @@ async function init(): Promise<void> {
 	});
 
 	if (await doesFileExist(sameViewUrl)) {
-		select<HTMLAnchorElement>('.fork-flag .text a')!.pathname = sameViewUrl.pathname;
+		select<HTMLAnchorElement>(`[data-hovercard-type="repository"][href="/${getForkedRepo()!}"]`)!.pathname = sameViewUrl.pathname;
 	}
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Points the “Forked from user/repository” link to current folder or file in the upstream repository.',
-	screenshot: 'https://user-images.githubusercontent.com/1402241/84795784-3722d000-aff8-11ea-9b34-97c01acf4fd4.png'
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.isSingleFile,
-		pageDetect.isRepoTree
+		pageDetect.isRepoTree,
+		pageDetect.isEditingFile
 	],
 	exclude: [
 		() => !pageDetect.isForkedRepo(),

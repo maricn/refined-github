@@ -21,8 +21,8 @@ const hasAnyProjects = cache.function(async (): Promise<boolean> => {
 
 	return Boolean(repository.projects.totalCount) && Boolean(organization?.projects?.totalCount);
 }, {
-	maxAge: 3,
-	staleWhileRevalidate: 20,
+	maxAge: {days: 1},
+	staleWhileRevalidate: {days: 20},
 	cacheKey: () => `has-projects:${getRepoURL()}`
 });
 
@@ -71,14 +71,10 @@ async function init(): Promise<void | false> {
 	]);
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Hides `Projects` and `Milestones` filters in conversation lists if they are empty.',
-	screenshot: 'https://user-images.githubusercontent.com/37769974/59083449-0ef88f80-8915-11e9-8296-68af1ddcf191.png'
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.isRepoConversationList
 	],
-	waitForDomReady: false,
+	awaitDomReady: false,
 	init
 });

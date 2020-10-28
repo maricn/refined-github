@@ -15,7 +15,7 @@ const branchInfoRegex = /([^ ]+)\.$/;
 export default cache.function(async (repository: Partial<RepositoryInfo> = getRepositoryInfo()): Promise<string> => {
 	if (JSON.stringify(repository) === JSON.stringify(getRepositoryInfo())) {
 		if (pageDetect.isRepoHome()) {
-			return getCurrentBranch();
+			return getCurrentBranch()!;
 		}
 
 		if (!pageDetect.isForkedRepo()) {
@@ -38,7 +38,7 @@ export default cache.function(async (repository: Partial<RepositoryInfo> = getRe
 
 	return response.repository.defaultBranchRef.name;
 }, {
-	maxAge: 10,
-	staleWhileRevalidate: 20,
+	maxAge: {hours: 1},
+	staleWhileRevalidate: {days: 20},
 	cacheKey: ([repository]) => repository ? `default-branch:${repository.owner!}/${repository.name!}` : `default-branch:${getRepoURL()}`
 });

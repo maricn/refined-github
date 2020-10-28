@@ -75,9 +75,9 @@ async function redirectToBlameCommit(event: delegate.Event<MouseEvent, HTMLAncho
 		blameUrl.branch = await getPullRequestBlameCommit(prCommit, prNumber, blameUrl.filePath);
 		blameUrl.hash = 'L' + select('.js-line-number', blameHunk)!.textContent!;
 		location.href = String(blameUrl);
-	} catch (error) {
+	} catch (error: unknown) {
 		spinner.replaceWith(<VersionIcon/>);
-		alert(error.message);
+		alert((error as Error).message);
 	}
 }
 
@@ -91,7 +91,7 @@ function init(): void | false {
 	for (const pullRequest of pullRequests) {
 		const hunk = pullRequest.closest('.blame-hunk')!;
 
-		const reblameLink = select('.reblame-link', hunk)!;
+		const reblameLink = select('.reblame-link', hunk);
 		if (reblameLink) {
 			reblameLink.setAttribute('aria-label', 'View blame prior to this change. Hold `Alt` to extract commits from this PR first');
 			reblameLink.classList.add('rgh-deep-reblame');
@@ -109,11 +109,7 @@ function init(): void | false {
 	}
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'When exploring blames, `Alt`-clicking the “Reblame” buttons will extract the associated PR’s commits first, instead of treating the commit a single change.',
-	screenshot: 'https://user-images.githubusercontent.com/16872793/77248541-8e3f2180-6c10-11ea-91d4-221ccc0ecebb.png'
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.isBlame
 	],

@@ -8,7 +8,7 @@ import * as api from '../github-helpers/api';
 import pluralize from '../helpers/pluralize';
 import {getRepoGQL} from '../github-helpers';
 
-const getCommitChanges = cache.function(async (commit: string): Promise<[number, number]> => {
+const getCommitChanges = cache.function(async (commit: string): Promise<[additions: number, deletions: number]> => {
 	const {repository} = await api.v4(`
 		repository(${getRepoGQL()}) {
 			object(expression: "${commit}") {
@@ -43,14 +43,10 @@ async function init(): Promise<void> {
 	);
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Adds diff stats on PR commits.',
-	screenshot: 'https://user-images.githubusercontent.com/16872793/76107253-48deeb00-5fa6-11ea-9931-721cde553bdf.png'
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.isPRCommit
 	],
-	waitForDomReady: false,
+	awaitDomReady: false,
 	init
 });

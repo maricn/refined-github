@@ -7,7 +7,7 @@ import * as pageDetect from 'github-url-detection';
 import features from '.';
 import * as api from '../github-helpers/api';
 import observeElement from '../helpers/simplified-element-observer';
-import {getRepoURL, getConversationNumber} from '../github-helpers';
+import {getConversationNumber} from '../github-helpers';
 
 let observer: MutationObserver;
 
@@ -19,7 +19,7 @@ function getBranches(): {base: string; head: string} {
 }
 
 async function mergeBranches(): Promise<AnyObject> {
-	return api.v3(`repos/${getRepoURL()}/pulls/${getConversationNumber()!}/update-branch`, {
+	return api.v3(`pulls/${getConversationNumber()!}/update-branch`, {
 		method: 'PUT',
 		headers: {
 			Accept: 'application/vnd.github.lydian-preview+json'
@@ -77,15 +77,15 @@ async function addButton(): Promise<void> {
 	}
 
 	// Draft PRs already have this info on the page
-	const [outOfDateContainer] = select.all('.completeness-indicator-problem + .status-heading')
-		.filter(title => title.textContent!.includes('out-of-date'));
+	const outOfDateContainer = select.all('.completeness-indicator-problem + .status-heading')
+		.find(title => title.textContent!.includes('out-of-date'));
 	if (outOfDateContainer) {
 		const meta = outOfDateContainer.nextElementSibling!;
 		meta.after(' ', createButton());
 		return;
 	}
 
-	const {status} = await api.v3(`repos/${getRepoURL()}/compare/${base}...${head}`);
+	const {status} = await api.v3(`compare/${base}...${head}`);
 	if (status !== 'diverged') {
 		return;
 	}
@@ -95,7 +95,9 @@ async function addButton(): Promise<void> {
 	}
 }
 
-function init(): void | false {
+async function init(): Promise<void | false> {
+	await api.expectToken();
+
 	// Button exists when the current user can merge the PR.
 	// Button is disabled when:
 	// - There are conflicts (there's already a native "Resolve conflicts" button)
@@ -110,11 +112,7 @@ function init(): void | false {
 	delegate(document, '.rgh-update-pr-from-base-branch button', 'click', handler);
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Adds button to update a PR from the base branch to ensure it builds correctly before merging the PR itself.',
-	screenshot: 'https://user-images.githubusercontent.com/1402241/57941992-f2170080-7902-11e9-8f8a-594aad983559.png'
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.isPRConversation
 	],

@@ -12,9 +12,7 @@ interface Asset {
 	name: string;
 	downloadCount: number;
 }
-interface Tag {
-	[key: string]: Asset[];
-}
+type Tag = Record<string, Asset[]>;
 async function getAssetsForTag(tags: string[]): Promise<Tag> {
 	const {repository} = await api.v4(`
 		repository(${getRepoGQL()}) {
@@ -71,7 +69,7 @@ async function init(): Promise<void | false> {
 		for (const assetName of select.all('.octicon-package ~ span', release)) {
 			// Match the asset in the DOM to the asset in the API response
 			for (const [index, {name, downloadCount}] of sortedDownloads.entries()) {
-				if (name === assetName.textContent) {
+				if (name === assetName.textContent && downloadCount > 0) {
 					const classes = 'rgh-release-download-count mr-2 text-gray' + (index === 0 ? ' text-bold' : '');
 					// Place next to asset size
 					assetName
@@ -88,11 +86,7 @@ async function init(): Promise<void | false> {
 	}
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Adds a download count next to release assets.',
-	screenshot: 'https://user-images.githubusercontent.com/14323370/58944460-e1aeb480-874f-11e9-8052-2d4dc794ecab.png'
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.isReleasesOrTags
 	],

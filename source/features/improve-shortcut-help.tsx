@@ -1,5 +1,6 @@
 import React from 'dom-chef';
 import select from 'select-dom';
+import onetime from 'onetime';
 
 import features from '.';
 import {isEditable} from '../helpers/dom-utils';
@@ -60,12 +61,7 @@ function init(): void {
 	document.addEventListener('keypress', observeShortcutModal);
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Show Refined GitHub’s keyboard shortcuts in the help modal (`?` hotkey)',
-	screenshot: 'https://user-images.githubusercontent.com/29176678/36999174-9f07d33e-20bf-11e8-83e3-b3a9908a4b5f.png'
-}, {
-	waitForDomReady: false,
-	repeatOnAjax: false,
-	init
+void features.add(__filebasename, {
+	awaitDomReady: false,
+	init: onetime(init)
 });

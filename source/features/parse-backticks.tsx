@@ -1,113 +1,58 @@
 import './parse-backticks.css';
-import select from 'select-dom';
-import * as pageDetect from 'github-url-detection';
+import onetime from 'onetime';
+import {observe} from 'selector-observer';
+import zipTextNodes from 'zip-text-nodes';
 
 import features from '.';
-import observeElement from '../helpers/simplified-element-observer';
 import {parseBackticks} from '../github-helpers/dom-formatters';
+import parseBackticksCore from '../github-helpers/parse-backticks';
 
-function parse(selectors: string[]): void {
-	for (const element of select.all(selectors.map(selector => selector + ':not(.rgh-backticks-already-parsed)'))) {
-		element.classList.add('rgh-backticks-already-parsed');
-		parseBackticks(element);
-	}
-}
-
-function initRepo(): void {
-	parse([
-		'.commit-title', // `isCommit`
-		'.commit-desc', // `isCommit`, `isCommitList`, `isRepoTree`
-		'.commit-message', // Pushed commits in `isPRConversation`, `isCompare`, `isReleasesOrTags`
-		'.message', // `isCommitList`, `isRepoTree`, `isBlame`
-		'.repository-content .js-details-container .link-gray[href*="/commit/"]', // `isSingleFile`
-		'.repository-content .js-details-container pre', // `isSingleFile`
-		'[aria-label="Issues"][role="group"] .js-navigation-open', // `isConversationList`
-		'[id^=ref-issue-]', // Issue references in `isIssue`, `isPRConversation`
-		'[id^=ref-pullrequest-]', // PR references in `isIssue`, `isPRConversation`
-		'.TimelineItem-body > del, .TimelineItem-body > ins', // Title edits in `isIssue`, `isPRConversation`
-		'.js-pinned-issue-list-item > .d-block', // Pinned Issues
-		'.pulse-section li', // `isPulse`
-		'.release-header', // `isReleasesOrTags` Headers
-		'[id^="check_suite"] a.link-gray-dark', // `isActions`
-		'.repository-content .pr-toolbar h2', // `isActions` run
-		'.Details[data-issue-and-pr-hovercards-enabled] .Details-content--hidden a.link-gray-dark', // `isRepoRoot`
-		'.Details[data-issue-and-pr-hovercards-enabled] .Details-content--hidden pre', // `isRepoRoot`
-		'.Details[data-issue-and-pr-hovercards-enabled] .d-none a.link-gray-dark', // `isRepoRoot`
-		'.existing-pull-contents .list-group-item-link', // `isCompare` with existing PR
-		'[aria-label="Link issues"] a', // "Linked issues" in `isIssue`, `isPRConversation`
+function init(): void {
+	const selectors = [
 		'.BorderGrid--spacious .f4.mt-3', // `isRepoHome` repository description
-		'.js-wiki-sidebar-toggle-display a', // `isWiki`
-		'.gh-header-title' // `isWiki`
-	]);
-}
-
-function initDashboard(): void {
-	parse([
-		'.js-recent-activity-container .text-bold', // `isDashboard`"Recent activity" titles
-		'.commits blockquote' // Newsfeed commits
-	]);
-}
-
-function initNotifications(): void {
-	parse([
-		'.notifications-list-item p.text-normal'
-	]);
-}
-
-function initGlobalConversationList(): void {
-	parse([
-		'.link-gray-dark.js-navigation-open'
-	]);
-}
-
-function initUserProfile(): void {
-	parse([
+		'.js-commits-list-item .mb-1, .js-commits-list-item pre', // `isCommitList` commit message and description
+		'.Details[data-issue-and-pr-hovercards-enabled] .d-none a.link-gray-dark', // `isRepoRoot` commit message
+		'.commit-title, .commit-desc', // `isCommit` commit message and description
+		'.commit-message', // `isPRConversation`, `isCompare`, `isReleasesOrTags` pushed commits
+		'.blame-commit-message', // `isBlame` commit message
+		'a[id^="issue_"]', // `isConversationList` issue and PR title
+		'.TimelineItem-body > del, .TimelineItem-body > ins', // `isIssue`, `isPRConversation` title edits
+		'[id^=ref-issue-], [id^=ref-pullrequest-]', // `isIssue`, `isPRConversation` issue and PR references
+		'[aria-label="Link issues"] a', // `isIssue`, `isPRConversation` linked issue and PR
+		'.Box-header.Details .link-gray, .Box-header.Details pre', // `isSingleFile` commit message and description
+		'.js-pinned-issue-list-item > .d-block', // Pinned Issues
+		'.release-header', // `isReleasesOrTags` Headers
+		'.existing-pull-contents .list-group-item-link', // `isCompare` with existing PR
+		'#pull-requests a.link-gray-dark', // `isPulse` issue and PR title
+		'[id^="check_suite"] a.link-gray-dark', // `isRepositoryActions`
+		'.checks-summary-conclusion + .flex-auto .f3', // `isActions` run
+		'.js-wiki-sidebar-toggle-display a', // `isWiki` sidebar pages title
+		'.wiki-wrapper .gh-header-title', // `isWiki` page title
+		'.js-recent-activity-container .text-bold', // `isDashboard` "Recent activity" titles
+		'.issues_labeled .text-gray-dark > a', // `isDashboard` "help wanted" event titles
+		'.commits blockquote', // `isDashboard` newsfeed commits
+		'.notifications-list-item p.text-normal', // `isNotifications` issue and PR title
 		'.profile-timeline-card .text-gray-dark', // `isUserProfileMainTab` issue and PR title
-		'[itemprop="description"]' // `isUserProfileRepoTab` repository description
-	]);
-}
+		'#user-repositories-list [itemprop="description"]', // `isUserProfileRepoTab` repository description
+		'.js-hovercard-content > .Popover-message .link-gray-dark' // Hovercard
+	].map(selector => selector + ':not(.rgh-backticks-already-parsed)').join();
 
-function initHovercard(): void {
-	const hovercard = select('.js-hovercard-content > .Popover-message')!;
+	observe(selectors, {
+		add(element) {
+			element.classList.add('rgh-backticks-already-parsed');
+			parseBackticks(element);
+		}
+	});
 
-	observeElement(hovercard, () => {
-		parse([
-			'.js-hovercard-content > .Popover-message .link-gray-dark'
-		]);
+	// `isRepoSearch` might highlight keywords inside backticks, breaking the regular dom-formatter #3509
+	observe('.codesearch-results .f4:not(.rgh-backticks-already-parsed)', {
+		add(element) {
+			element.classList.add('rgh-backticks-already-parsed');
+			zipTextNodes(element, parseBackticksCore(element.textContent!));
+		}
 	});
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Renders text in `backticks` in issue titles, commit titles and more places.',
-	screenshot: 'https://user-images.githubusercontent.com/170270/55060505-31179b00-50a4-11e9-99a9-c3691ba38d66.png'
-}, {
-	include: [
-		pageDetect.isRepo
-	],
-	init: initRepo
-}, {
-	include: [
-		pageDetect.isDashboard
-	],
-	onlyAdditionalListeners: true,
-	init: initDashboard
-}, {
-	include: [
-		pageDetect.isNotifications
-	],
-	init: initNotifications
-}, {
-	include: [
-		pageDetect.isGlobalConversationList
-	],
-	init: initGlobalConversationList
-}, {
-	include: [
-		pageDetect.isUserProfile
-	],
-	init: initUserProfile
-}, {
-	init: initHovercard,
-	repeatOnAjax: false
+void features.add(__filebasename, {
+	init: onetime(init)
 });

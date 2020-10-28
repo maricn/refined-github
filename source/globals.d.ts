@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/consistent-indexed-object-style */
+
 type AnyObject = Record<string, any>;
 type AsyncVoidFunction = () => Promise<void>;
 
@@ -5,15 +7,9 @@ type FeatureID = 'use the __filebasename variable';
 
 type FeatureShortcuts = Record<string, string>;
 interface FeatureMeta {
-	/**
-	If it's disabled, this should be the issue that explains why, as a reference
-	@example '#123'
-	*/
-	disabled?: string;
 	id: FeatureID;
 	description: string;
-	screenshot: string | false;
-	shortcuts?: FeatureShortcuts;
+	screenshot?: string;
 }
 
 interface FeatureConfig {
@@ -37,9 +33,11 @@ declare module 'deep-weak-map' {
 // Custom UI events specific to RGH
 interface GlobalEventHandlersEventMap {
 	'details:toggled': CustomEvent;
-	'rgh:view-markdown-source': CustomEvent;
-	'rgh:view-markdown-rendered': CustomEvent;
 	'filterable:change': CustomEvent;
+	'menu:activated': CustomEvent;
+	'rgh:view-markdown-rendered': CustomEvent;
+	'rgh:view-markdown-source': CustomEvent;
+	'pjax:error': CustomEvent;
 	'page:loaded': CustomEvent;
 	'pjax:start': CustomEvent;
 }
@@ -49,13 +47,14 @@ declare namespace JSX {
 	type BaseIntrinsicElement = IntrinsicElements['div'];
 	type LabelIntrinsicElement = IntrinsicElements['label'];
 	interface IntrinsicElements {
-		'has-rgh': BaseIntrinsicElement;
-		'label': LabelIntrinsicElement & {for?: string};
-		'include-fragment': BaseIntrinsicElement & {src?: string};
-		'details-menu': BaseIntrinsicElement & {src?: string; preload?: boolean};
-		'time-ago': BaseIntrinsicElement & {datetime: string; format?: string};
-		'relative-time': BaseIntrinsicElement & {datetime: string};
+		'clipboard-copy': IntrinsicElements['button'];
 		'details-dialog': BaseIntrinsicElement & {tabindex: string};
+		'details-menu': BaseIntrinsicElement & {src?: string; preload?: boolean};
+		'has-rgh': BaseIntrinsicElement;
+		'include-fragment': BaseIntrinsicElement & {src?: string};
+		'label': LabelIntrinsicElement & {for?: string};
+		'relative-time': BaseIntrinsicElement & {datetime: string};
+		'time-ago': BaseIntrinsicElement & {datetime: string; format?: string};
 	}
 
 	interface IntrinsicAttributes extends BaseIntrinsicElement {
@@ -81,7 +80,5 @@ declare module '*.svg' {
 
 // Make `element.cloneNode()` preserve its type instead of returning Node
 interface Node extends EventTarget {
-	// Not equivalent
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	cloneNode(deep?: boolean): this;
 }

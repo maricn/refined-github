@@ -1,5 +1,6 @@
 import React from 'dom-chef';
 import select from 'select-dom';
+import onetime from 'onetime';
 import domLoaded from 'dom-loaded';
 import elementReady from 'element-ready';
 import * as pageDetect from 'github-url-detection';
@@ -21,15 +22,10 @@ async function init(): Promise<void> {
 	);
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Moves the "Marketplace" link from the black header bar to the profile dropdown.',
-	screenshot: false
-}, {
+void features.add(__filebasename, {
 	exclude: [
 		pageDetect.isGist
 	],
-	waitForDomReady: false,
-	repeatOnAjax: false,
-	init
+	awaitDomReady: false,
+	init: onetime(init)
 });

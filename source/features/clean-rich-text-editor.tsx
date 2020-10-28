@@ -1,5 +1,6 @@
 import './clean-rich-text-editor.css';
 import select from 'select-dom';
+import onetime from 'onetime';
 import * as pageDetect from 'github-url-detection';
 
 import features from '.';
@@ -14,11 +15,7 @@ function hideTextareaTooltip(): void {
 	}
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Hides unnecessary comment field tooltips and toolbar items.',
-	screenshot: 'https://user-images.githubusercontent.com/1402241/53629083-a4fe8900-3c47-11e9-8211-bfe2d254ffcb.png'
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.hasRichTextEditor
 	],
@@ -27,7 +24,6 @@ void features.add({
 	include: [
 		pageDetect.isRepo
 	],
-	waitForDomReady: false,
-	repeatOnAjax: false,
-	init: hideButtons
+	awaitDomReady: false,
+	init: onetime(hideButtons)
 });

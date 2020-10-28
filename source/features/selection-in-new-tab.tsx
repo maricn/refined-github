@@ -1,4 +1,5 @@
 import select from 'select-dom';
+import onetime from 'onetime';
 
 import features from '.';
 import {isEditable} from '../helpers/dom-utils';
@@ -19,15 +20,10 @@ function init(): void {
 	document.addEventListener('keypress', openInNewTab);
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Adds a keyboard shortcut to open selection in new tab when navigating via `j` and `k`: `Shift` `o`.',
-	screenshot: false,
+void features.add(__filebasename, {
 	shortcuts: {
 		'shift o': 'Open selection in new tab'
-	}
-}, {
-	waitForDomReady: false,
-	repeatOnAjax: false,
-	init
+	},
+	awaitDomReady: false,
+	init: onetime(init)
 });

@@ -9,9 +9,11 @@ export const botSelectors = [
 	/* Commits */
 	'.commit-author[href$="%5Bbot%5D"]:first-child',
 	'.commit-author[href$="renovate-bot"]:first-child',
+	'.commit-author[href$="scala-steward"]:first-child',
 
 	/* Issues/PRs */
-	'.opened-by [href*="author%3Aapp%2F"]'
+	'.opened-by [href*="author%3Aapp%2F"]',
+	'.labels [href$="label%3Abot"]'
 ];
 
 function init(): void {
@@ -20,11 +22,7 @@ function init(): void {
 	}
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Dims commits and PRs by bots to reduce noise.',
-	screenshot: 'https://user-images.githubusercontent.com/1402241/65263190-44c52b00-db36-11e9-9b33-d275d3c8479d.gif'
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.isCommitList,
 		pageDetect.isConversationList

@@ -7,18 +7,19 @@ import * as pageDetect from 'github-url-detection';
 import {wrap} from '../helpers/dom-utils';
 import features from '.';
 import GitHubURL from '../github-helpers/github-url';
+import {isPermalink} from '../github-helpers';
 import getDefaultBranch from '../github-helpers/get-default-branch';
 import onFileListUpdate from '../github-events/on-file-list-update';
 
 async function init(): Promise<void> {
-	const isPermalink = /Tag|Tree/.test(select('[data-hotkey="w"] i')!.textContent!);
+	const isPermalink_ = await isPermalink();
 	for (const fileIcon of select.all('.js-navigation-container .octicon-file')) {
 		const fileLink = fileIcon.closest('.js-navigation-item')!.querySelector<HTMLAnchorElement>('.js-navigation-open')!;
 		const url = new GitHubURL(fileLink.href).assign({
 			route: 'edit'
 		});
 
-		if (isPermalink) {
+		if (isPermalink_) {
 			// eslint-disable-next-line no-await-in-loop
 			url.branch = await getDefaultBranch(); // Permalinks can't be edited
 		}
@@ -28,11 +29,7 @@ async function init(): Promise<void> {
 	}
 }
 
-void features.add({
-	id: __filebasename,
-	description: 'Adds a button to edit files from the repo file list.',
-	screenshot: 'https://user-images.githubusercontent.com/1402241/56370462-d51cde00-622d-11e9-8cd3-8a173bd3dc08.png'
-}, {
+void features.add(__filebasename, {
 	include: [
 		pageDetect.isRepoTree
 	],
